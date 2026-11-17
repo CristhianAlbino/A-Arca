@@ -41,4 +41,4 @@ A ARCA navega como um serviço de streaming e conversa como os assistentes de IA
 
 ## Implementação
 
-Tailwind CSS com os tokens acima, componentes Radix/shadcn, Framer Motion para transições curtas, react-markdown para respostas. Nada carregado de CDN.
+CSS próprio com os tokens acima em `apps/desktop/src/styles/tokens.css` ([ADR 0008](../adr/0008-estilos-css-tokens.md)); react-markdown para respostas a partir da Fase 2. Nada carregado de CDN.

@@ -47,6 +47,7 @@ flowchart TB
 | Enciclopédias | Kiwix; Wikipédia não é vetorizada | [0005](../adr/0005-kiwix-enciclopedias.md) |
 | Mapas | PMTiles + MapLibre, recursos empacotados | [0006](../adr/0006-mapas-pmtiles.md) |
 | Armazenamento | Volumes por UUID, Drive como origem, nunca apagar | [0007](../adr/0007-armazenamento-volumes.md) |
+| Estilos | CSS próprio com tokens, sem Tailwind por enquanto | [0008](../adr/0008-estilos-css-tokens.md) |
 
 ## Princípios
 

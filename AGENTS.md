@@ -28,7 +28,7 @@ O documento de origem do projeto é [`docs/00-visao/PROMPT-MESTRE.md`](docs/00-v
 | Camada | Tecnologia |
 | --- | --- |
 | Desktop | Tauri 2 (Rust) + React + TypeScript + Vite |
-| UI | Tailwind CSS, Radix/shadcn, Framer Motion, react-markdown |
+| UI | CSS próprio com tokens (`apps/desktop/src/styles/tokens.css`, ADR 0008); react-markdown a partir da Fase 2 |
 | Motor | Python 3.12 + FastAPI, sidecar em `127.0.0.1` com token por sessão |
 | IA local | Ollama (interface `ModelProvider`; llama.cpp como reserva) |
 | Banco | SQLite (WAL) + FTS5 + sqlite-vec |

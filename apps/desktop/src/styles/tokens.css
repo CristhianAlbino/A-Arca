@@ -1,0 +1,47 @@
+/* ARCA design tokens — source: docs/arquitetura/DESIGN.md (ADR 0008). */
+:root {
+  --bg: #0a0a0b;
+  --surface-1: #111113;
+  --surface-2: #141417;
+  --surface-3: #1f1f23;
+  --surface-4: #26262b;
+  --border: #2a2a30;
+  --border-soft: #1f1f23;
+
+  --text: #f2f2f3;
+  --text-strong: #ffffff;
+  --text-muted: #b4b4bb;
+  --text-faint: #8e8e96;
+
+  --accent: #f5a524;
+  --accent-ink: #0a0a0b;
+  --ok: #3ddc84;
+  --ok-text: #7ee2a8;
+  --ok-bg: #10261a;
+  --warn-text: #f5c46b;
+  --warn-bg: #2b2210;
+  --danger-text: #ff8a8a;
+
+  --cover-blue: #1e3a5f;
+  --cover-brown: #3b2f1e;
+  --cover-green: #1f3d2b;
+  --cover-wine: #4a1f24;
+  --cover-violet: #2e2a4a;
+  --cover-teal: #0f3b3a;
+  --cover-graphite: #3a3a3f;
+
+  /* Fonts: bundle Inter and Space Grotesk in src/assets/fonts (pending, see FASE-01). */
+  --font-body: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-display: "Space Grotesk", "Segoe UI Semibold", "Segoe UI", system-ui, sans-serif;
+
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 20px;
+  --page-x: 48px;
+}
+
+@media (max-width: 720px) {
+  :root {
+    --page-x: 20px;
+  }
+}

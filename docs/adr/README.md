@@ -11,6 +11,7 @@ Uma decisão por arquivo: `NNNN-titulo-curto.md`. Status: Proposto · Aceito · 
 | [0005](0005-kiwix-enciclopedias.md) | Kiwix para enciclopédias, sem vetorizar a Wikipédia | Aceito |
 | [0006](0006-mapas-pmtiles.md) | Mapas em PMTiles + MapLibre | Aceito |
 | [0007](0007-armazenamento-volumes.md) | Volumes por UUID e Drive como origem | Aceito |
+| [0008](0008-estilos-css-tokens.md) | Estilos com CSS próprio e tokens (sem Tailwind por enquanto) | Aceito |
 
 ## Modelo
 
