@@ -19,7 +19,7 @@ import threading
 import urllib.error
 import urllib.request
 from collections import deque
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
@@ -120,16 +120,7 @@ class NetGuard:
         return list(reversed(items))
 
     # --- transport ----------------------------------------------------------
-    def request(
-        self,
-        method: str,
-        url: str,
-        *,
-        data: bytes | None = None,
-        headers: dict[str, str] | None = None,
-        timeout: float = 10.0,
-    ) -> Response:
-        self.check(url)
+    def _opener(self, url: str) -> urllib.request.OpenerDirector:
         guard = self
 
         class _CheckedRedirect(urllib.request.HTTPRedirectHandler):
@@ -140,10 +131,21 @@ class NetGuard:
         handlers: list[Any] = [_CheckedRedirect()]
         if is_loopback_host(urlsplit(url).hostname or ""):
             handlers.append(urllib.request.ProxyHandler({}))  # never send local traffic to a proxy
-        opener = urllib.request.build_opener(*handlers)
+        return urllib.request.build_opener(*handlers)
+
+    def request(
+        self,
+        method: str,
+        url: str,
+        *,
+        data: bytes | None = None,
+        headers: dict[str, str] | None = None,
+        timeout: float = 10.0,
+    ) -> Response:
+        self.check(url)
         req = urllib.request.Request(url, data=data, headers=headers or {}, method=method.upper())
         try:
-            with opener.open(req, timeout=timeout) as resp:
+            with self._opener(url).open(req, timeout=timeout) as resp:
                 return Response(resp.status, dict(resp.headers.items()), resp.read())
         except urllib.error.HTTPError as err:
             return Response(err.code, dict(err.headers.items()), err.read())
@@ -154,6 +156,33 @@ class NetGuard:
 
     def get(self, url: str, **kwargs: Any) -> Response:
         return self.request("GET", url, **kwargs)
+
+    def stream_lines(
+        self,
+        method: str,
+        url: str,
+        *,
+        data: bytes | None = None,
+        headers: dict[str, str] | None = None,
+        timeout: float = 300.0,
+    ) -> Iterator[bytes]:
+        """Yield the response body line by line (for NDJSON streams such as Ollama's).
+
+        Raises urllib.error.HTTPError for non-2xx answers. `timeout` applies to each read,
+        so a model that takes a while to load does not break the stream.
+        """
+        self.check(url)
+        req = urllib.request.Request(url, data=data, headers=headers or {}, method=method.upper())
+        try:
+            resp = self._opener(url).open(req, timeout=timeout)
+        except urllib.error.URLError as err:
+            if isinstance(err.reason, NetworkBlocked):
+                raise err.reason from None
+            raise
+        with resp:
+            for line in resp:
+                if line.strip():
+                    yield line
 
 
 def _redact(url: str) -> str:
