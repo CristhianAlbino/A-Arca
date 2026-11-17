@@ -63,7 +63,10 @@ async function loadConfig(): Promise<EngineConfig> {
     const { invoke } = await import("@tauri-apps/api/core");
     // The shell answers once the engine printed its ready line.
     for (let attempt = 0; attempt < 60; attempt++) {
-      const info = await invoke<{ port: number | null; token: string | null }>("engine_info");
+      const info = await invoke<{ port: number | null; token: string | null; error: string | null }>(
+        "engine_info",
+      );
+      if (info.error) throw new Error(info.error);
       if (info.port && info.token) {
         return { baseUrl: `http://127.0.0.1:${info.port}`, token: info.token };
       }
