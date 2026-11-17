@@ -1,32 +1,39 @@
 # STATUS da ARCA
 
-**Última atualização:** 2026-11-17 · **Fase atual:** 0 concluída → próxima: **Fase 1 — ARCA CORE**
+**Última atualização:** 2026-11-17 · **Fase atual:** 1 — ARCA CORE · **Situação:** código pronto no branch `feat/fase-1-core`, aguardando teste no notebook e revisão (PR)
 
 ## O que existe
 
-- Arquitetura aprovada pelo usuário em 2026-11-17 ([ARQUITETURA.md](arquitetura/ARQUITETURA.md), ADRs 0001–0007).
-- Estrutura do repositório e documentação de colaboração entre IAs.
-- Pasta `ARCA/` no Google Drive com 17 categorias, 18 subpastas de Sobrevivência, planilha `catalogo_arca` e LEIA-ME.
-- Protótipos visuais da tela inicial e da conversa (canvas de design no claude.ai, ver [DESIGN.md](arquitetura/DESIGN.md)).
+- Fase 0 concluída: arquitetura, ADRs 0001–0008, estrutura do repositório e do Drive, protótipos (ver [DESIGN.md](arquitetura/DESIGN.md)).
+- Fase 1 (branch `feat/fase-1-core`):
+  - **Motor** (`engine/`): pastas, configurações, SQLite com migrações, volumes por UUID, guarda de rede, dados do sistema (RAM/VRAM/disco), histórico, API HTTP local com token, ponto de entrada `python -m arca_engine`.
+  - **Interface** (`apps/desktop/src`): barra superior com 8 seções (inclui Entretenimento), tela inicial com dados reais, registro de volumes, histórico; telas "em construção" para o que vem depois.
+  - **Shell** (`apps/desktop/src-tauri`): inicia e encerra o motor, CSP restrita, instalador NSIS.
+  - **Scripts** Windows (`setup.ps1`, `dev.ps1`, `build.ps1`) e CI no GitHub Actions.
 
-## O que funciona
+## O que funciona (testado)
 
-Nada executável ainda. Nenhum código foi escrito.
+Ver [testes/2026-11-17-fase1-core.md](testes/2026-11-17-fase1-core.md): 34 testes do motor e 1 teste ponta a ponta da interface no Chromium passaram na sessão de IA (Linux).
 
 ## O que não foi testado
 
-Tudo. Não há código.
+- Camada HTTP com FastAPI (`test_api.py`), compilação do Tauri, `vite build`/`tsc`, scripts PowerShell, VRAM real, letras de unidade do Windows. Motivo: o ambiente da sessão não permite instalar pacotes. Tudo isso roda no notebook com `scripts\setup.ps1` e `scripts\dev.ps1`.
 
 ## Próximos passos
 
-1. Fase 1 — ver [FASE-01.md](fases/FASE-01.md).
-2. Usuário: instalar o upgrade de RAM para 24 GB antes da Fase 2 (portão).
-3. Usuário: começar a abastecer o Drive (`ARCA/01_ENTRADA` e categorias) e registrar no catálogo.
+1. **Usuário:** abrir o PR de `feat/fase-1-core` no GitHub (https://github.com/CristhianAlbino/A-Arca/pull/new/feat/fase-1-core).
+2. **Usuário, no notebook:** instalar Python 3.12, Node 20, Rust e Build Tools; rodar `scripts\setup.ps1` e `scripts\dev.ps1`; conferir os critérios da Fase 1 (tabela no relatório de testes).
+3. Corrigir o que falhar na primeira compilação real e fazer merge → release `v0.1.0`.
+4. Fase 2 (IA) começa depois do merge e do upgrade de RAM para 24 GB.
+
+## Pendências da Fase 1
+
+- Empacotar as fontes Inter e Space Grotesk (hoje usa Segoe UI/sistema como reserva).
+- Issues e GitHub Project (não foi possível criar pela sessão: sem acesso à API do GitHub).
 
 ## Bloqueios
 
-- Nenhum para a Fase 1.
-- Fase 2 depende do upgrade de RAM (8 → 24 GB).
+- Fase 2 depende do upgrade de RAM (8 → 24 GB) para os testes com modelos locais.
 
 ## Decisões do usuário (2026-11-17)
 
@@ -39,3 +46,4 @@ Tudo. Não há código.
 | SSD externo | 2 TB, compra futura |
 | Design | Navegação inspirada em streaming (Netflix), chat no padrão ChatGPT, identidade própria (grafite, âmbar, verde) |
 | Acervo extra | Artes e aba **Entretenimento** (Bíblia, literatura, jogos leves, quadrinhos, música; sem filmes). Jogos somente próprios ou livres |
+| Acompanhamento | Cada passo registrado no Git com commits detalhados |

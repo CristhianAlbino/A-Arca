@@ -1,3 +1,7 @@
-# apps/desktop
+# apps/desktop — interface e shell da ARCA
 
-Interface da ARCA (Tauri 2 + React + TypeScript + Vite). Começa na [Fase 1](../../docs/fases/FASE-01.md).
+- `src/` — interface React + TypeScript (estilos em `src/styles/tokens.css`, ADR 0008).
+- `src-tauri/` — shell Tauri 2: abre a janela, inicia e encerra o motor, gera o instalador.
+
+Comandos (a partir da raiz do repositório): `scripts\setup.ps1`, `scripts\dev.ps1`, `scripts\build.ps1`.
+Só a interface no navegador: `npm run dev` com o motor rodando em `--port 8765 --token dev` (veja `.env.example`).

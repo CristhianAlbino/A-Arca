@@ -36,7 +36,26 @@ O documento de origem do projeto é [`docs/00-visao/PROMPT-MESTRE.md`](docs/00-v
 | Mapas | PMTiles + MapLibre GL JS |
 | Empacotamento | Tauri bundler (NSIS) + PyInstaller (onedir) |
 
-Comandos de instalação, execução e teste serão adicionados aqui na Fase 1, quando houver código.
+## 3.1 Comandos
+
+No Windows (PowerShell, na raiz do repositório):
+
+| Tarefa | Comando |
+| --- | --- |
+| Preparar ambiente (uma vez) | `.\scripts\setup.ps1` |
+| Abrir o app em desenvolvimento | `.\scripts\dev.ps1` |
+| Só no navegador (motor na porta 8765, token `dev`) | `.\scripts\dev.ps1 -Browser` |
+| Testes do motor | `cd engine; .\.venv\Scripts\python -m pytest -q` |
+| Gerar instalador | `.\scripts\build.ps1` |
+
+Em qualquer sistema, sem instalar pacotes (sessões de IA restritas):
+
+| Tarefa | Comando |
+| --- | --- |
+| Testes do motor (pula os que precisam de FastAPI) | `cd engine && python3 -m pytest -q` |
+| Teste da interface no Chromium | `NODE_PATH=<pasta com esbuild, react, react-dom> python3 -m pytest tests/e2e -q` |
+
+Sem acesso a `gh`/API do GitHub, não é possível abrir PR: faça push do branch e registre no diário que o PR precisa ser aberto pelo usuário.
 
 ## 4. Fluxo de cada sessão
 
