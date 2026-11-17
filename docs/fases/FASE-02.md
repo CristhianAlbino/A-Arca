@@ -1,6 +1,6 @@
 # Fase 2 — ARCA AI
 
-**Status:** em andamento no branch `feat/fase-2-ai` (empilhado sobre `feat/fase-1-core`) · **Release alvo:** v0.2.0
+**Status:** etapa 2A concluída (testada com Ollama falso); 2B e 2C pendentes; em andamento no branch `feat/fase-2-ai` (empilhado sobre `feat/fase-1-core`) · **Release alvo:** v0.2.0
 **Portão:** testes com modelos reais só depois do upgrade de RAM para 24 GB.
 
 ## Objetivos
@@ -9,13 +9,15 @@ Conversar com modelos locais (Ollama) numa tela no padrão ChatGPT, com conversa
 ## Etapas
 
 ### 2A — IA local (pode ser feita e testada antes do notebook, com um Ollama falso)
-- [ ] Interface `ModelProvider` e `OllamaProvider` (via `netguard`, só loopback)
-- [ ] Streaming de respostas (NDJSON) do Ollama até a interface
-- [ ] Orçamento de memória: um modelo de chat por vez; recusar com explicação quando não cabe em VRAM + RAM
-- [ ] Conversas e mensagens salvas no SQLite (migração 2)
-- [ ] Rotas `/ai/status`, `/ai/models`, `/ai/models/{nome}/unload`, `/ai/conversations`, `/ai/chat`
-- [ ] Tela de conversa: lateral com histórico, coluna central, caixa de mensagem, parar geração, seletor de modelo com selo LOCAL
-- [ ] Mensagem clara quando o Ollama não está instalado ou aberto
+- [x] Interface `ModelProvider` e `OllamaProvider` (via `netguard`, só loopback)
+- [x] Streaming de respostas (NDJSON) do Ollama até a interface
+- [x] Orçamento de memória: um modelo de chat por vez; recusar com explicação quando não cabe em VRAM + RAM
+- [x] Conversas e mensagens salvas no SQLite (migração 2)
+- [x] Rotas `/ai/status` (inclui a lista de modelos), `/ai/models/{nome}/unload`, `/ai/conversations`, `/ai/chat`
+- [x] Tela de conversa: lateral com histórico, coluna central, caixa de mensagem, parar geração, seletor de modelo com selo LOCAL
+- [x] Mensagem clara quando o Ollama não está instalado ou aberto
+
+- [ ] Markdown completo nas respostas (react-markdown) — hoje: parágrafos e blocos de código
 
 ### 2B — Gestão de modelos (precisa do notebook e de internet para baixar)
 - [ ] Baixar modelos (`ollama pull`) só com modo online ligado; remover modelos
@@ -42,3 +44,4 @@ Conversar com modelos locais (Ollama) numa tela no padrão ChatGPT, com conversa
 
 ## Registro de alterações
 - 2026-11-17: plano criado; início da etapa 2A.
+- 2026-11-17: etapa 2A implementada e testada com Ollama falso ([relatório](../testes/2026-11-17-fase2a-ia-local.md)).

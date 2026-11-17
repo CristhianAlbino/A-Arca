@@ -1,6 +1,6 @@
 # STATUS da ARCA
 
-**Última atualização:** 2026-11-17 · **Fase atual:** 1 — ARCA CORE · **Situação:** código pronto no branch `feat/fase-1-core`, aguardando teste no notebook e revisão (PR)
+**Última atualização:** 2026-11-17 · **Fase atual:** 1 — ARCA CORE (código pronto, aguardando teste no notebook) · **Adiantado:** Fase 2A — IA local, no branch `feat/fase-2-ai`
 
 ## O que existe
 
@@ -10,10 +10,12 @@
   - **Interface** (`apps/desktop/src`): barra superior com 8 seções (inclui Entretenimento), tela inicial com dados reais, registro de volumes, histórico; telas "em construção" para o que vem depois.
   - **Shell** (`apps/desktop/src-tauri`): inicia e encerra o motor, CSP restrita, instalador NSIS.
   - **Scripts** Windows (`setup.ps1`, `dev.ps1`, `build.ps1`) e CI no GitHub Actions.
+- Fase 2A (branch `feat/fase-2-ai`, empilhado sobre a Fase 1): conversa com modelos locais pelo Ollama, streaming, um modelo por vez, checagem de memória, conversas salvas, tela de conversa no padrão ChatGPT. Testada com um Ollama falso ([relatório](testes/2026-11-17-fase2a-ia-local.md)).
 
 ## O que funciona (testado)
 
-Ver [testes/2026-11-17-fase1-core.md](testes/2026-11-17-fase1-core.md): 34 testes do motor e 1 teste ponta a ponta da interface no Chromium passaram na sessão de IA (Linux).
+- Fase 1: [testes/2026-11-17-fase1-core.md](testes/2026-11-17-fase1-core.md).
+- Fase 2A: [testes/2026-11-17-fase2a-ia-local.md](testes/2026-11-17-fase2a-ia-local.md) — 49 testes do motor e 2 testes ponta a ponta no Chromium passaram na sessão de IA (Linux), com Ollama falso.
 
 ## O que não foi testado
 
@@ -24,7 +26,9 @@ Ver [testes/2026-11-17-fase1-core.md](testes/2026-11-17-fase1-core.md): 34 teste
 1. **Usuário:** abrir o PR de `feat/fase-1-core` no GitHub (https://github.com/CristhianAlbino/A-Arca/pull/new/feat/fase-1-core).
 2. **Usuário, no notebook:** instalar Python 3.12, Node 20, Rust e Build Tools; rodar `scripts\setup.ps1` e `scripts\dev.ps1`; conferir os critérios da Fase 1 (tabela no relatório de testes).
 3. Corrigir o que falhar na primeira compilação real e fazer merge → release `v0.1.0`.
-4. Fase 2 (IA) começa depois do merge e do upgrade de RAM para 24 GB.
+4. Depois do merge da Fase 1: revisar e mergear `feat/fase-2-ai` (https://github.com/CristhianAlbino/A-Arca/pull/new/feat/fase-2-ai).
+5. Testar a IA com modelo real: instalar o Ollama, baixar um modelo pequeno (3–4B) enquanto a RAM é 8 GB; 7–9B depois do upgrade para 24 GB.
+6. Próximo a adiantar: etapa 2C (Claude/GPT/Gemini opcionais, chaves no Cofre do Windows) e 2B (baixar/remover modelos).
 
 ## Pendências da Fase 1
 

@@ -5,6 +5,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 ## [Não lançado]
 
 ### Adicionado
+- Fase 2A (branch `feat/fase-2-ai`): IA local via Ollama com streaming, um modelo por vez, checagem de memória antes de carregar, conversas salvas e tela de conversa no padrão ChatGPT.
 - Fase 1 (branch `feat/fase-1-core`): motor local (configurações, SQLite, volumes por UUID, guarda de rede, dados do sistema, API com token), interface da tela inicial, shell Tauri, scripts Windows e CI.
 - Aba Entretenimento (Bíblia, literatura, jogos leves, quadrinhos, música).
 - ADR 0008: estilos com CSS próprio e tokens.
