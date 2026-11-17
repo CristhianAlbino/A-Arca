@@ -1,0 +1,61 @@
+# --- Conteúdo pesado: nunca no Git ---
+*.gguf
+*.safetensors
+*.bin
+*.zim
+*.pmtiles
+*.mbtiles
+*.osm.pbf
+*.pbf
+*.sqlite
+*.sqlite3
+*.db
+*.db-wal
+*.db-shm
+*.iso
+*.zip
+*.7z
+/data/
+/library/
+/models/
+/maps/
+/backups/
+.arca-volume.json
+
+# --- Segredos ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# --- Node / frontend ---
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+
+# --- Rust / Tauri ---
+target/
+apps/desktop/src-tauri/gen/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+*.egg-info/
+
+# --- Sistema / editores ---
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.log
