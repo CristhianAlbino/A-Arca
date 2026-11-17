@@ -38,4 +38,4 @@ Tudo. Não há código.
 | Wikipédia | Português e inglês |
 | SSD externo | 2 TB, compra futura |
 | Design | Navegação inspirada em streaming (Netflix), chat no padrão ChatGPT, identidade própria (grafite, âmbar, verde) |
-| Acervo extra | Artes e jogos leves (somente jogos próprios ou livres) |
+| Acervo extra | Artes e aba **Entretenimento** (Bíblia, literatura, jogos leves, quadrinhos, música; sem filmes). Jogos somente próprios ou livres |

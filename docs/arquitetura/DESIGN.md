@@ -22,10 +22,11 @@ A ARCA navega como um serviço de streaming e conversa como os assistentes de IA
 
 ## Tela inicial (inspirada na Netflix)
 
-- Barra superior: logo ARCA, Início, IA, Conhecimento, Sobrevivência, Mapas, Arquivos, Módulos, busca global, selo ONLINE/OFFLINE.
+- Barra superior: logo ARCA, Início, IA, Conhecimento, Sobrevivência, Entretenimento, Mapas, Arquivos, Módulos, busca global, selo ONLINE/OFFLINE.
 - Destaque (hero) com item em evidência e botões "Abrir" e "Perguntar à IA".
 - Faixa discreta de estado do sistema: RAM, VRAM, disco, modelo carregado.
-- Fileiras horizontais: Continuar lendo, Sobrevivência, Enciclopédias e bibliotecas, Conversas recentes (e, quando houver conteúdo, Artes e Jogos).
+- Fileiras horizontais: Continuar lendo, Sobrevivência, Entretenimento, Enciclopédias e bibliotecas, Conversas recentes.
+- **Aba Entretenimento:** Bíblia, livros de literatura, jogos leves, quadrinhos e música. Filmes ficam de fora (pesados demais para o acervo).
 - Cards 2:3 para livros e enciclopédias, 16:9 para áreas, mapas, cursos e módulos. Hover: o card cresce e mostra formato, tamanho, confiabilidade e local (disco/nuvem).
 - Conteúdo indisponível aparece esmaecido com selo "NA NUVEM" ou "SSD DESCONECTADO".
 

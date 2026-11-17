@@ -32,7 +32,8 @@ ARCA/
 ├─ 01_ENTRADA  02_ENCICLOPEDIAS  03_LIVROS  04_MANUAIS
 ├─ 05_SOBREVIVENCIA/ 01_Agua … 18_Seguranca_Emergencias
 ├─ 06_MAPAS  07_CURSOS  08_DOC_TECNICA  09_PESQUISAS  10_IMAGENS
-├─ 11_ARTES  12_JOGOS  13_MODELOS_IA  14_INSTALADORES
+├─ 11_ARTES  13_MODELOS_IA  14_INSTALADORES
+├─ 12_ENTRETENIMENTO/ 01_Biblia  02_Livros_Literatura  03_Jogos  04_Quadrinhos  05_Musica
 ├─ 90_PESSOAL   (nunca enviado a IA online)
 └─ 99_BACKUPS
 ```
@@ -63,7 +64,7 @@ Campos do catálogo: `id, nome, categoria, subcategoria, origem, autor, data, id
 | Backups | 2 GB | 20 GB | 50 GB |
 | **Total** | **~33 GB** | **~217 GB** | **~566 GB** |
 
-Artes e jogos não estão nessa conta e dependem do que for adicionado.
+Artes e Entretenimento (livros, jogos, quadrinhos, música) não estão nessa conta e dependem do que for adicionado.
 
 ## Teste de isolamento de rede
 
