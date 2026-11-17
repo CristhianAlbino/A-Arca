@@ -1,6 +1,6 @@
 # STATUS da ARCA
 
-**Última atualização:** 2026-11-17 · **Fase atual:** 1 — ARCA CORE (código pronto, aguardando teste no notebook) · **Adiantado:** Fase 2A — IA local, no branch `feat/fase-2-ai`
+**Última atualização:** 2026-11-17 · **Fase atual:** 1 — ARCA CORE (compila e roda no notebook; faltam Wi-Fi desligado, pendrive e instalador) · **Adiantado:** Fase 2A — IA local, no branch `feat/fase-2-ai`
 
 ## O que existe
 
@@ -17,15 +17,17 @@
 - Fase 1: [testes/2026-11-17-fase1-core.md](testes/2026-11-17-fase1-core.md).
 - Fase 2A: [testes/2026-11-17-fase2a-ia-local.md](testes/2026-11-17-fase2a-ia-local.md) — 49 testes do motor e 2 testes ponta a ponta no Chromium passaram na sessão de IA (Linux), com Ollama falso.
 
+- **Notebook (Windows 11), 2026-11-17:** 55 testes do motor (inclui FastAPI), `tsc`, `vite build`, `cargo build` do Tauri, app aberto pelo `dev.ps1`, motor encerrado ao fechar a janela, VRAM real da RTX 5060 lida, requisição sem token recusada ([relatório](testes/2026-11-17-notebook-primeira-compilacao.md)).
+
 ## O que não foi testado
 
-- Camada HTTP com FastAPI (`test_api.py`), compilação do Tauri, `vite build`/`tsc`, scripts PowerShell, VRAM real, letras de unidade do Windows. Motivo: o ambiente da sessão não permite instalar pacotes. Tudo isso roda no notebook com `scripts\setup.ps1` e `scripts\dev.ps1`.
+- App com Wi-Fi desligado, volume em pendrive, instalador (`scripts\build.ps1`), IA com modelo real (Ollama não instalado).
 
 ## Próximos passos
 
 1. **Usuário:** abrir o PR de `feat/fase-1-core` no GitHub (https://github.com/CristhianAlbino/A-Arca/pull/new/feat/fase-1-core).
-2. **Usuário, no notebook:** instalar Python 3.12, Node 20, Rust e Build Tools; rodar `scripts\setup.ps1` e `scripts\dev.ps1`; conferir os critérios da Fase 1 (tabela no relatório de testes).
-3. Corrigir o que falhar na primeira compilação real e fazer merge → release `v0.1.0`.
+2. **No notebook:** abrir o app com Wi-Fi desligado, testar um pendrive, rodar `scripts\build.ps1` e instalar o `.exe` gerado.
+3. Fazer merge da Fase 1 → release `v0.1.0`.
 4. Depois do merge da Fase 1: revisar e mergear `feat/fase-2-ai` (https://github.com/CristhianAlbino/A-Arca/pull/new/feat/fase-2-ai).
 5. Testar a IA com modelo real: instalar o Ollama, baixar um modelo pequeno (3–4B) enquanto a RAM é 8 GB; 7–9B depois do upgrade para 24 GB.
 6. Próximo a adiantar: etapa 2C (Claude/GPT/Gemini opcionais, chaves no Cofre do Windows) e 2B (baixar/remover modelos).
