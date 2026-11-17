@@ -11,6 +11,13 @@ interface Props {
   onClose: () => void;
 }
 
+const IDLE_CHOICES = [1, 5, 15, 30, 60];
+
+/** Fixed choices, plus the current value if it was set to something else. */
+function idleOptions(current: number): number[] {
+  return [...new Set([...IDLE_CHOICES, current])].sort((a, b) => a - b);
+}
+
 interface Progress {
   status: string;
   completed: number | null;
@@ -38,6 +45,15 @@ export function ModelManager({ status, busy, onChanged, onClose }: Props) {
   async function goOffline() {
     try {
       await settings.setNetworkMode("blocked");
+      await onChanged();
+    } catch (err) {
+      setMessage({ kind: "error", text: err instanceof Error ? err.message : String(err) });
+    }
+  }
+
+  async function setIdle(minutes: number) {
+    try {
+      await settings.setIdleUnloadMinutes(minutes);
       await onChanged();
     } catch (err) {
       setMessage({ kind: "error", text: err instanceof Error ? err.message : String(err) });
@@ -129,6 +145,23 @@ export function ModelManager({ status, busy, onChanged, onClose }: Props) {
           ))}
         </ul>
       )}
+
+      <div className="models-idle">
+        <label htmlFor="descarga">Tirar o modelo da memória depois de</label>
+        <select
+          id="descarga"
+          className="model-select"
+          value={status.idle_unload_minutes}
+          onChange={(e) => setIdle(Number(e.target.value))}
+        >
+          {idleOptions(status.idle_unload_minutes).map((m) => (
+            <option key={m} value={m}>
+              {m < 60 ? `${m} min` : `${m / 60} h`} sem uso
+            </option>
+          ))}
+        </select>
+        <span className="muted">Vale a partir da próxima mensagem. Menos tempo libera RAM e VRAM mais cedo.</span>
+      </div>
 
       <h2>Baixar modelo</h2>
       {!online ? (

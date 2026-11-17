@@ -38,8 +38,12 @@ class Settings:
     def validate(self) -> None:
         if self.network_mode not in self.VALID_NETWORK_MODES:
             raise ValueError(f"network_mode must be one of {self.VALID_NETWORK_MODES}")
-        if self.model_idle_unload_minutes < 1:
-            raise ValueError("model_idle_unload_minutes must be >= 1")
+        if (
+            not isinstance(self.model_idle_unload_minutes, int)
+            or isinstance(self.model_idle_unload_minutes, bool)
+            or not 1 <= self.model_idle_unload_minutes <= 1440
+        ):
+            raise ValueError("model_idle_unload_minutes must be an integer from 1 to 1440")
 
     def to_dict(self) -> dict[str, Any]:
         data = asdict(self)

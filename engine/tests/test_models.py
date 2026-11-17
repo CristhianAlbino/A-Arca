@@ -108,3 +108,17 @@ def test_http_routes(app_paths, fake):
             assert c.delete("/ai/models/library/llama3.2:1b", headers=auth).status_code == 404
     finally:
         ctx.close()
+
+
+@pytest.mark.parametrize("bad", [0, -5, 1441, "5", 2.5, True])
+def test_idle_unload_minutes_validated(ctx, bad):
+    with pytest.raises(service.ServiceError):
+        service.update_settings(ctx, {"model_idle_unload_minutes": bad})
+
+
+def test_idle_unload_minutes_reaches_ollama(ctx, fake):
+    service.update_settings(ctx, {"model_idle_unload_minutes": 30})
+    assert service.ai_status(ctx)["idle_unload_minutes"] == 30
+    list(service.chat(ctx, "oi", "teste-pequeno:3b", memory_probe=lambda: (8 * 1024**3, 16 * 1024**3)))
+    chat_body = next(body for method, path, body in fake.requests if path == "/api/chat")
+    assert chat_body["keep_alive"] == "30m"

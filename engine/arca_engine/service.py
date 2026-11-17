@@ -117,6 +117,7 @@ def ai_status(ctx: AppContext) -> dict[str, Any]:
         "loaded": [],
         "default_model": ctx.settings.default_model,
         "network_mode": ctx.settings.network_mode,
+        "idle_unload_minutes": ctx.settings.model_idle_unload_minutes,
     }
     if status["available"]:
         try:

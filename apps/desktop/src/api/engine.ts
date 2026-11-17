@@ -152,6 +152,7 @@ export interface AiStatus {
   loaded: { name: string; size_bytes: number; vram_bytes: number; expires_at: string | null }[];
   default_model: string | null;
   network_mode: "blocked" | "online";
+  idle_unload_minutes: number;
 }
 
 export interface ConversationSummary {
@@ -246,6 +247,11 @@ export type PullEvent =
 export const settings = {
   setNetworkMode: (mode: "blocked" | "online") =>
     api<Record<string, unknown>>("/settings", { method: "PUT", body: JSON.stringify({ network_mode: mode }) }),
+  setIdleUnloadMinutes: (minutes: number) =>
+    api<Record<string, unknown>>("/settings", {
+      method: "PUT",
+      body: JSON.stringify({ model_idle_unload_minutes: minutes }),
+    }),
 };
 
 async function readNdjson<T>(body: ReadableStream<Uint8Array>, onEvent: (event: T) => void): Promise<void> {
