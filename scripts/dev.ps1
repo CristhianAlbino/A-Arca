@@ -17,10 +17,18 @@ if ($Browser) {
     npm run dev
     Pop-Location
 } else {
+    # A terminal opened before installing Rust keeps the old PATH (VS Code keeps it
+    # until fully restarted). Reload PATH from the registry and add rustup's default dir.
+    if (-not (Get-Command cargo -ErrorAction SilentlyContinue)) {
+        $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" +
+                    [Environment]::GetEnvironmentVariable("Path", "User")
+        $cargoHome = if ($env:CARGO_HOME) { $env:CARGO_HOME } else { "$env:USERPROFILE\.cargo" }
+        if (Test-Path "$cargoHome\bin\cargo.exe") { $env:Path = "$cargoHome\bin;$env:Path" }
+    }
     if (-not (Get-Command cargo -ErrorAction SilentlyContinue)) {
         Write-Host "Rust (cargo) não encontrado." -ForegroundColor Red
         Write-Host "1. Instale pelo rustup-init.exe em https://rustup.rs (aceite a instalação do Visual Studio Build Tools com C++)."
-        Write-Host "2. Feche e abra o PowerShell de novo e confira com: cargo --version"
+        Write-Host "2. Feche TODAS as janelas do PowerShell/VS Code, abra de novo e confira com: cargo --version"
         Write-Host "Enquanto isso, dá para usar só no navegador:  .\scripts\dev.ps1 -Browser"
         exit 1
     }
