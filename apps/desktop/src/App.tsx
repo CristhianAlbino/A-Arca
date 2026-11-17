@@ -4,6 +4,7 @@ import { TopBar } from "./components/TopBar";
 import { MODULES, type ModuleId } from "./modules";
 import { Chat } from "./screens/Chat";
 import { Home } from "./screens/Home";
+import { Knowledge } from "./screens/Knowledge";
 import { Placeholder } from "./screens/Placeholder";
 
 const REFRESH_MS = 5000;
@@ -43,6 +44,8 @@ export function App() {
       )}
       {current === "ia" ? (
         <Chat />
+      ) : current === "conhecimento" ? (
+        <Knowledge />
       ) : current === "inicio" ? (
         snapshot ? (
           <Home snapshot={snapshot} activity={activity} onRefresh={refresh} onNavigate={setCurrent} />

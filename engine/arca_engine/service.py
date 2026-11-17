@@ -236,3 +236,30 @@ def chat(
         memory_probe=memory_probe,
         keep_alive_minutes=ctx.settings.model_idle_unload_minutes,
     )
+
+
+# --- Knowledge: offline encyclopedias (Phase 3) ---------------------------------
+def _knowledge(call):
+    from .knowledge.kiwix import KnowledgeError
+
+    try:
+        return call()
+    except KnowledgeError as exc:
+        raise ServiceError(str(exc), status=exc.status) from exc
+
+
+def list_zims(ctx: AppContext, rescan: bool = False) -> list[dict[str, Any]]:
+    return _knowledge(lambda: [z.to_dict() for z in ctx.zims.list(rescan=rescan)])
+
+
+def search_knowledge(
+    ctx: AppContext, query: str, zim_id: str | None = None, limit: int = 20
+) -> list[dict[str, Any]]:
+    if len(query) > 300:
+        raise ServiceError("Busca longa demais (máximo de 300 caracteres).")
+    limit = max(1, min(limit, 50))
+    return _knowledge(lambda: ctx.zims.search(query, zim_id=zim_id, limit=limit))
+
+
+def read_article(ctx: AppContext, zim_id: str, path: str | None = None) -> dict[str, Any]:
+    return _knowledge(lambda: ctx.zims.article(zim_id, path))

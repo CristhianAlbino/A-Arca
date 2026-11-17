@@ -271,3 +271,46 @@ async function readNdjson<T>(body: ReadableStream<Uint8Array>, onEvent: (event: 
   }
   if (buffer.trim()) onEvent(JSON.parse(buffer) as T);
 }
+
+// ---------- Knowledge (Phase 3) ----------
+
+export interface ZimInfo {
+  id: string;
+  uri: string;
+  title: string;
+  description: string;
+  language: string;
+  article_count: number;
+  size_bytes: number;
+  has_fulltext: boolean;
+}
+
+export interface SearchHit {
+  zim_id: string;
+  zim_title: string;
+  path: string;
+  title: string;
+  snippet: string;
+}
+
+export interface Article {
+  zim_id: string;
+  zim_title: string;
+  path: string;
+  title: string;
+  html: string;
+}
+
+export const knowledge = {
+  zims: (rescan = false) => api<ZimInfo[]>(`/knowledge/zims${rescan ? "?rescan=true" : ""}`),
+  search: (q: string, zim?: string | null) => {
+    const params = new URLSearchParams({ q });
+    if (zim) params.set("zim", zim);
+    return api<SearchHit[]>(`/knowledge/search?${params}`);
+  },
+  article: (zim: string, path?: string | null) => {
+    const params = new URLSearchParams({ zim });
+    if (path) params.set("path", path);
+    return api<Article>(`/knowledge/article?${params}`);
+  },
+};

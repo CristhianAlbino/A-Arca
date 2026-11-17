@@ -121,6 +121,19 @@ def create_app(ctx: AppContext) -> FastAPI:
     def delete_model(model: str) -> dict[str, Any]:
         return service.delete_model(ctx, model)
 
+    # --- Knowledge (Phase 3) ---------------------------------------------
+    @app.get("/knowledge/zims")
+    def zims(rescan: bool = False) -> list[dict[str, Any]]:
+        return service.list_zims(ctx, rescan=rescan)
+
+    @app.get("/knowledge/search")
+    def knowledge_search(q: str, zim: str | None = None, limit: int = 20) -> list[dict[str, Any]]:
+        return service.search_knowledge(ctx, q, zim_id=zim, limit=limit)
+
+    @app.get("/knowledge/article")
+    def knowledge_article(zim: str, path: str | None = None) -> dict[str, Any]:
+        return service.read_article(ctx, zim, path)
+
     @app.get("/ai/conversations")
     def conversations(limit: int = 100) -> list[dict[str, Any]]:
         return service.list_conversations(ctx, limit=limit)

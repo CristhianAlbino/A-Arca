@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from .activity import log_activity
 from .ai.ollama import OllamaProvider
 from .config.paths import AppPaths
+from .knowledge.kiwix import ZimLibrary
 from .config.settings import Settings, load_settings, save_settings
 from .netguard import NetGuard, NetPolicy
 from .storage.db import open_database
@@ -25,9 +26,13 @@ class AppContext:
     volumes: VolumeRegistry = field(init=False)
     _settings_lock: threading.Lock = field(default_factory=threading.Lock, init=False)
 
+    zims: ZimLibrary = field(init=False)
+
     def __post_init__(self) -> None:
         self.netguard = NetGuard(self._net_policy, on_blocked=self._log_blocked)
         self.volumes = VolumeRegistry(self.db, search_paths=lambda: self.settings.volume_search_paths)
+        # A getter, because create() may swap the registry after construction.
+        self.zims = ZimLibrary(lambda: self.volumes)
 
     @classmethod
     def create(cls, paths: AppPaths, token: str, include_drive_roots: bool = True) -> "AppContext":
