@@ -7,6 +7,7 @@ import threading
 from dataclasses import dataclass, field
 
 from .activity import log_activity
+from .ai.ollama import OllamaProvider
 from .config.paths import AppPaths
 from .config.settings import Settings, load_settings, save_settings
 from .netguard import NetGuard, NetPolicy
@@ -43,6 +44,9 @@ class AppContext:
             )
         ctx.volumes.scan()
         return ctx
+
+    def ai_provider(self) -> OllamaProvider:
+        return OllamaProvider(self.netguard, self.settings.ollama_url)
 
     def _net_policy(self) -> NetPolicy:
         s = self.settings

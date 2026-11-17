@@ -6,7 +6,9 @@ from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+import json
+
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 
 from .. import __version__, service
@@ -26,6 +28,12 @@ ALLOWED_ORIGINS = [
 class RegisterVolume(BaseModel):
     path: str
     label: str
+
+
+class ChatRequest(BaseModel):
+    text: str
+    model: str | None = None
+    conversation_id: str | None = None
 
 
 def create_app(ctx: AppContext) -> FastAPI:
@@ -88,5 +96,32 @@ def create_app(ctx: AppContext) -> FastAPI:
     @app.get("/network/attempts")
     def network_attempts(only_blocked: bool = False) -> list[dict[str, Any]]:
         return service.network_attempts(ctx, only_blocked=only_blocked)
+
+    # --- AI (Phase 2) ----------------------------------------------------
+    @app.get("/ai/status")
+    def ai_status() -> dict[str, Any]:
+        return service.ai_status(ctx)
+
+    @app.post("/ai/models/{model}/unload")
+    def unload_model(model: str) -> dict[str, Any]:
+        return service.unload_model(ctx, model)
+
+    @app.get("/ai/conversations")
+    def conversations(limit: int = 100) -> list[dict[str, Any]]:
+        return service.list_conversations(ctx, limit=limit)
+
+    @app.get("/ai/conversations/{conversation_id}")
+    def conversation(conversation_id: str) -> dict[str, Any]:
+        return service.get_conversation(ctx, conversation_id)
+
+    @app.delete("/ai/conversations/{conversation_id}")
+    def delete_conversation(conversation_id: str) -> dict[str, Any]:
+        return service.delete_conversation(ctx, conversation_id)
+
+    @app.post("/ai/chat")
+    def chat(body: ChatRequest) -> StreamingResponse:
+        events = service.chat(ctx, body.text, body.model, body.conversation_id)
+        lines = (json.dumps(e, ensure_ascii=False) + "\n" for e in events)
+        return StreamingResponse(lines, media_type="application/x-ndjson")
 
     return app

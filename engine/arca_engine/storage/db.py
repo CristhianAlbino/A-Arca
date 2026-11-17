@@ -54,6 +54,30 @@ MIGRATIONS: list[str] = [
     );
     CREATE INDEX activity_at ON activity_log(at);
     """,
+    # 2 — Phase 2 conversations with the AI
+    """
+    CREATE TABLE conversations (
+        id          TEXT PRIMARY KEY,               -- UUID
+        title       TEXT NOT NULL,
+        provider    TEXT NOT NULL,                  -- 'ollama', later 'anthropic', 'openai'...
+        model       TEXT,
+        created_at  TEXT NOT NULL,
+        updated_at  TEXT NOT NULL
+    );
+    CREATE INDEX conversations_updated ON conversations(updated_at);
+
+    CREATE TABLE messages (
+        id               INTEGER PRIMARY KEY AUTOINCREMENT,
+        conversation_id  TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+        role             TEXT NOT NULL CHECK (role IN ('user','assistant','system')),
+        content          TEXT NOT NULL,
+        model            TEXT,
+        status           TEXT NOT NULL DEFAULT 'ok' CHECK (status IN ('ok','interrupted','error')),
+        stats_json       TEXT,
+        created_at       TEXT NOT NULL
+    );
+    CREATE INDEX messages_conversation ON messages(conversation_id, id);
+    """,
 ]
 
 

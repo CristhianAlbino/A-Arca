@@ -55,3 +55,24 @@ def test_volume_and_settings_roundtrip(client, tmp_path):
     assert client.get("/volumes", headers=auth()).json()[0]["available"] is True
     r = client.put("/settings", json={"network_mode": "talvez"}, headers=auth())
     assert r.status_code == 400
+
+
+def test_ai_chat_streams_ndjson(app_paths, tmp_path):
+    import json
+
+    from tests.fakes.fake_ollama import FakeOllama
+
+    fake = FakeOllama(token_delay=0)
+    ctx = AppContext.create(app_paths, token=TOKEN, include_drive_roots=False)
+    ctx.update_settings({"ollama_url": fake.start(), "default_model": "teste-pequeno:3b"})
+    try:
+        with TestClient(create_app(ctx)) as c:
+            assert c.get("/ai/status", headers=auth()).json()["available"] is True
+            r = c.post("/ai/chat", json={"text": "oi"}, headers=auth())
+            events = [json.loads(line) for line in r.text.splitlines() if line]
+            assert events[0]["type"] in ("meta", "notice")
+            assert events[-1]["type"] in ("done", "error")
+            assert c.post("/ai/chat", json={"text": "oi"}).status_code == 401
+    finally:
+        ctx.close()
+        fake.stop()

@@ -28,6 +28,9 @@ class Settings:
     volume_search_paths: list[str] = field(default_factory=list)
     # Minutes before an idle local model is unloaded (used from Phase 2).
     model_idle_unload_minutes: int = 5
+    # Local AI (Phase 2).
+    ollama_url: str = "http://127.0.0.1:11434"
+    default_model: str | None = None
     extra: dict[str, Any] = field(default_factory=dict)
 
     VALID_NETWORK_MODES = ("blocked", "online")
