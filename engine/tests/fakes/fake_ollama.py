@@ -1,7 +1,8 @@
 """A tiny stand-in for Ollama's HTTP API, for tests and UI previews.
 
-Implements /api/version, /api/tags, /api/ps, /api/chat (streaming NDJSON) and
-/api/generate with keep_alive=0 (unload). It never runs a real model: the
+Implements /api/version, /api/tags, /api/ps, /api/chat (streaming NDJSON),
+/api/generate with keep_alive=0 (unload), /api/pull (streaming, no real
+download) and /api/delete. It never runs a real model: the
 answer is a fixed, clearly labelled echo of the last user message.
 
     python engine/tests/fakes/fake_ollama.py 11434
@@ -70,6 +71,15 @@ class FakeOllama:
                     if fake.loaded == body.get("model"):
                         fake.loaded = None
                     self._json(200, {"model": body.get("model"), "done": True, "done_reason": "unload"})
+                elif self.path == "/api/pull":
+                    model = body.get("model")
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/x-ndjson")
+                    self.end_headers()
+                    for event in fake.pull_events(model):
+                        self.wfile.write(json.dumps(event).encode() + b"\n")
+                        self.wfile.flush()
+                        time.sleep(fake.token_delay)
                 elif self.path == "/api/chat":
                     model = body.get("model")
                     if model not in fake.models:
@@ -85,6 +95,16 @@ class FakeOllama:
                         time.sleep(fake.token_delay)
                 else:
                     self._json(404, {"error": "not found"})
+
+            def do_DELETE(self):  # noqa: N802
+                body = self._body()
+                fake.requests.append(("DELETE", self.path, body))
+                model = (body or {}).get("model")
+                if self.path == "/api/delete" and model in fake.models:
+                    del fake.models[model]
+                    self._json(200, {})
+                else:
+                    self._json(404, {"error": f"model '{model}' not found"})
 
         self._server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
         threading.Thread(target=self._server.serve_forever, daemon=True).start()
@@ -112,6 +132,21 @@ class FakeOllama:
             return []
         size = self.models[self.loaded]["size"]
         return [{"name": self.loaded, "model": self.loaded, "size": size, "size_vram": size}]
+
+    def pull_events(self, model):
+        """Ollama-shaped progress; names starting with "inexistente" fail like a missing model."""
+        if model.startswith("inexistente"):
+            yield {"status": "pulling manifest"}
+            yield {"error": "pull model manifest: file does not exist"}
+            return
+        total = int(1.5 * GB)
+        yield {"status": "pulling manifest"}
+        for done in (0, total // 2, total):
+            yield {"status": "pulling abc123", "digest": "sha256:abc123", "total": total, "completed": done}
+        yield {"status": "verifying sha256 digest"}
+        yield {"status": "writing manifest"}
+        self.models[model] = {"size": total, "family": "teste", "parameter_size": "1B", "q": "Q4_K_M"}
+        yield {"status": "success"}
 
     def chat_events(self, body):
         last_user = next((m["content"] for m in reversed(body["messages"]) if m["role"] == "user"), "")

@@ -6,6 +6,7 @@ layer (api/app.py) a thin translation of these functions.
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from . import __version__
@@ -115,6 +116,7 @@ def ai_status(ctx: AppContext) -> dict[str, Any]:
         "models": [],
         "loaded": [],
         "default_model": ctx.settings.default_model,
+        "network_mode": ctx.settings.network_mode,
     }
     if status["available"]:
         try:
@@ -132,6 +134,69 @@ def unload_model(ctx: AppContext, model: str) -> dict[str, Any]:
         raise ServiceError(str(exc), status=503) from exc
     log_activity(ctx.db, "ai", f"Modelo descarregado da memória: {model}")
     return {"unloaded": model}
+
+
+MODEL_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._\-/]{0,127}(:[A-Za-z0-9._\-]{1,64})?$")
+ONLINE_REQUIRED = (
+    "Baixar modelos precisa de internet. Ligue o modo online nas configurações "
+    "e tente de novo; o resto da ARCA continua funcionando offline."
+)
+
+
+def _check_model_name(model: str) -> str:
+    model = model.strip()
+    if not MODEL_NAME.match(model) or ".." in model:
+        raise ServiceError("Nome de modelo inválido. Exemplo: llama3.2:3b")
+    return model
+
+
+def pull_model(ctx: AppContext, model: str) -> Iterator[dict[str, Any]]:
+    """Download a model through Ollama. Only with online mode on.
+
+    Validation errors raise before streaming starts (HTTP 4xx); errors during
+    the download arrive as a final {"type": "error"} event.
+    """
+    model = _check_model_name(model)
+    if ctx.settings.network_mode != "online":
+        raise ServiceError(ONLINE_REQUIRED, status=403)
+    provider = ctx.ai_provider()
+
+    def events() -> Iterator[dict[str, Any]]:
+        log_activity(ctx.db, "ai", f"Download de modelo iniciado: {model}")
+        try:
+            for ev in provider.pull(model):
+                yield {
+                    "type": "progress",
+                    "status": ev.get("status", ""),
+                    "completed": ev.get("completed"),
+                    "total": ev.get("total"),
+                }
+        except (ProviderUnavailable, ProviderError) as exc:
+            log_activity(ctx.db, "ai", f"Download de modelo falhou: {model}")
+            yield {"type": "error", "message": str(exc)}
+            return
+        log_activity(ctx.db, "ai", f"Modelo baixado: {model}")
+        yield {"type": "done", "model": model}
+
+    return events()
+
+
+def delete_model(ctx: AppContext, model: str) -> dict[str, Any]:
+    """Remove a model from Ollama's disk. Unloads it from memory first."""
+    model = _check_model_name(model)
+    provider = ctx.ai_provider()
+    try:
+        if any(m.name == model for m in provider.loaded()):
+            provider.unload(model)
+        provider.delete(model)
+    except ProviderUnavailable as exc:
+        raise ServiceError(str(exc), status=503) from exc
+    except ProviderError as exc:
+        raise ServiceError(str(exc), status=404 if "not found" in str(exc) else 502) from exc
+    if ctx.settings.default_model == model:
+        ctx.update_settings({"default_model": None})
+    log_activity(ctx.db, "ai", f"Modelo removido: {model}")
+    return {"deleted": model}
 
 
 def list_conversations(ctx: AppContext, limit: int = 100) -> list[dict[str, Any]]:

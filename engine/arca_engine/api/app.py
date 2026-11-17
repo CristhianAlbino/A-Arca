@@ -36,6 +36,10 @@ class ChatRequest(BaseModel):
     conversation_id: str | None = None
 
 
+class PullRequest(BaseModel):
+    model: str
+
+
 def create_app(ctx: AppContext) -> FastAPI:
     app = FastAPI(
         title="ARCA Engine",
@@ -105,6 +109,17 @@ def create_app(ctx: AppContext) -> FastAPI:
     @app.post("/ai/models/{model}/unload")
     def unload_model(model: str) -> dict[str, Any]:
         return service.unload_model(ctx, model)
+
+    @app.post("/ai/models/pull")
+    def pull_model(body: PullRequest) -> StreamingResponse:
+        events = service.pull_model(ctx, body.model)
+        lines = (json.dumps(e, ensure_ascii=False) + "\n" for e in events)
+        return StreamingResponse(lines, media_type="application/x-ndjson")
+
+    # {model:path}: names such as "library/llama3.2:3b" contain a slash.
+    @app.delete("/ai/models/{model:path}")
+    def delete_model(model: str) -> dict[str, Any]:
+        return service.delete_model(ctx, model)
 
     @app.get("/ai/conversations")
     def conversations(limit: int = 100) -> list[dict[str, Any]]:

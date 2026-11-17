@@ -829,3 +829,123 @@ button {
   font-size: 12px;
   color: var(--text-muted);
 }
+
+/* ---------- Model manager (Phase 2B) ---------- */
+.btn-small {
+  min-height: 34px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+
+.link-button {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--text-muted);
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+}
+
+.models-panel {
+  margin: 12px 20px 0;
+  padding: 16px 20px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.models-panel h2 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.models-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.models-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.models-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 14px;
+}
+
+.models-name {
+  font-weight: 600;
+}
+
+.models-list li .btn {
+  margin-left: auto;
+}
+
+.models-form {
+  display: flex;
+  gap: 8px;
+}
+
+.models-form input {
+  flex: 1;
+  margin: 0;
+}
+
+.models-hint,
+.models-offline p {
+  margin: 0;
+  font-size: 13px;
+}
+
+.models-offline {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--text-muted);
+}
+
+.models-online {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.models-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.models-msg {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ok-text);
+}
+
+.models-msg-error {
+  color: var(--danger-text);
+}
+
+.chat-manage {
+  margin-left: auto;
+}

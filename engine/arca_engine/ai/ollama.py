@@ -90,6 +90,32 @@ class OllamaProvider:
         # Ollama unloads a model when asked to keep it alive for 0 seconds.
         self._json("POST", "/api/generate", {"model": model, "keep_alive": 0}, timeout=30)
 
+    def pull(self, model: str) -> Iterator[dict[str, Any]]:
+        """Download a model. Yields Ollama's progress events as they arrive.
+
+        The engine only talks to the local Ollama here; Ollama itself downloads
+        from its registry. The caller must make sure online mode is on.
+        """
+        try:
+            lines = self.guard.stream_lines(
+                "POST",
+                self.base_url + "/api/pull",
+                data=json.dumps({"model": model, "stream": True}).encode(),
+                headers={"Content-Type": "application/json"},
+            )
+            for raw in lines:
+                event = json.loads(raw)
+                if event.get("error"):
+                    raise ProviderError(event["error"])
+                yield event
+        except urllib.error.HTTPError as exc:
+            raise ProviderError(_error_text(exc.read()) or f"Ollama respondeu {exc.code}") from exc
+        except (urllib.error.URLError, ConnectionError) as exc:
+            raise ProviderUnavailable(NOT_RUNNING.format(url=self.base_url)) from exc
+
+    def delete(self, model: str) -> None:
+        self._json("DELETE", "/api/delete", {"model": model}, timeout=60)
+
     def chat(
         self, model: str, messages: list[ChatMessage], *, keep_alive_minutes: int = 5
     ) -> Iterator[ChatChunk]:

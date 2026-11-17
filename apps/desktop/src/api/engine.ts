@@ -151,6 +151,7 @@ export interface AiStatus {
   models: AiModel[];
   loaded: { name: string; size_bytes: number; vram_bytes: number; expires_at: string | null }[];
   default_model: string | null;
+  network_mode: "blocked" | "online";
 }
 
 export interface ConversationSummary {
@@ -207,20 +208,60 @@ export const ai = {
     if (!response.ok || !response.body) {
       throw new EngineError(`Erro ${response.status} ao conversar com a IA.`, response.status);
     }
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-    for (;;) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      let newline: number;
-      while ((newline = buffer.indexOf("\n")) >= 0) {
-        const line = buffer.slice(0, newline).trim();
-        buffer = buffer.slice(newline + 1);
-        if (line) onEvent(JSON.parse(line) as ChatEvent);
+    await readNdjson(response.body, onEvent);
+  },
+
+  deleteModel: (name: string) =>
+    api<{ deleted: string }>(`/ai/models/${name.split("/").map(encodeURIComponent).join("/")}`, {
+      method: "DELETE",
+    }),
+
+  /** Downloads a model through Ollama (needs online mode). Abort with `signal` to stop. */
+  async pull(model: string, onEvent: (event: PullEvent) => void, signal?: AbortSignal): Promise<void> {
+    const { baseUrl, token } = await engineConfig();
+    const response = await fetch(baseUrl + "/ai/models/pull", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model }),
+      signal,
+    });
+    if (!response.ok || !response.body) {
+      let detail = `Erro ${response.status} ao baixar o modelo.`;
+      try {
+        detail = (await response.json()).detail ?? detail;
+      } catch {
+        /* body was not JSON */
       }
+      throw new EngineError(detail, response.status);
     }
-    if (buffer.trim()) onEvent(JSON.parse(buffer) as ChatEvent);
+    await readNdjson(response.body, onEvent);
   },
 };
+
+export type PullEvent =
+  | { type: "progress"; status: string; completed: number | null; total: number | null }
+  | { type: "done"; model: string }
+  | { type: "error"; message: string };
+
+export const settings = {
+  setNetworkMode: (mode: "blocked" | "online") =>
+    api<Record<string, unknown>>("/settings", { method: "PUT", body: JSON.stringify({ network_mode: mode }) }),
+};
+
+async function readNdjson<T>(body: ReadableStream<Uint8Array>, onEvent: (event: T) => void): Promise<void> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    let newline: number;
+    while ((newline = buffer.indexOf("\n")) >= 0) {
+      const line = buffer.slice(0, newline).trim();
+      buffer = buffer.slice(newline + 1);
+      if (line) onEvent(JSON.parse(line) as T);
+    }
+  }
+  if (buffer.trim()) onEvent(JSON.parse(buffer) as T);
+}

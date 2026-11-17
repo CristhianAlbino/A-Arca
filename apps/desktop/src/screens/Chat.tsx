@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent }
 import { ai, type AiStatus, type ChatEvent, type ConversationSummary } from "../api/engine";
 import { ArcaMark, PlusIcon } from "../components/Icons";
 import { MessageText } from "../components/MessageText";
+import { ModelManager } from "../components/ModelManager";
 import { gb } from "../format";
 
 interface UiMessage {
@@ -37,6 +38,7 @@ export function Chat() {
   const [input, setInput] = useState("");
   const [search, setSearch] = useState("");
   const [streaming, setStreaming] = useState(false);
+  const [managing, setManaging] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
 
@@ -227,10 +229,17 @@ export function Chat() {
           ))}
         </nav>
         <div className="chat-side-foot">
-          <span className="pill pill-ok">
-            <span className="dot" />
-            OFFLINE · tudo local
-          </span>
+          {status?.network_mode === "online" ? (
+            <span className="pill pill-warn">
+              <span className="dot" />
+              ONLINE · downloads liberados
+            </span>
+          ) : (
+            <span className="pill pill-ok">
+              <span className="dot" />
+              OFFLINE · tudo local
+            </span>
+          )}
           <span>As conversas ficam só neste computador.</span>
         </div>
       </aside>
@@ -258,17 +267,35 @@ export function Chat() {
           <span className="muted chat-model-state">
             {loadedNow ? "carregado na memória" : selected ? "carrega ao enviar" : ""}
           </span>
+          {available && (
+            <button
+              type="button"
+              className="btn btn-outline btn-small chat-manage"
+              onClick={() => setManaging((v) => !v)}
+              aria-expanded={managing}
+            >
+              Gerenciar modelos
+            </button>
+          )}
         </div>
+
+        {managing && status?.available && (
+          <ModelManager
+            status={status}
+            busy={streaming}
+            onChanged={refreshStatus}
+            onClose={() => setManaging(false)}
+          />
+        )}
 
         {(statusError || (status && !status.available)) && (
           <div className="banner" role="alert">
             {statusError ?? status?.reason}
           </div>
         )}
-        {status?.available && status.models.length === 0 && (
+        {status?.available && status.models.length === 0 && !managing && (
           <div className="banner" role="alert">
-            O Ollama está aberto, mas nenhum modelo foi instalado ainda. O download de modelos chega na
-            etapa 2B; por enquanto, use <code>ollama pull</code> no terminal.
+            O Ollama está aberto, mas nenhum modelo foi instalado ainda. Use “Gerenciar modelos” para baixar um.
           </div>
         )}
 
