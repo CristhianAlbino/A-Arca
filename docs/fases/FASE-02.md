@@ -1,6 +1,6 @@
 # Fase 2 — ARCA AI
 
-**Status:** etapa 2A concluída (testada com Ollama falso); 2B e 2C pendentes; em andamento no branch `feat/fase-2-ai` (empilhado sobre `feat/fase-1-core`) · **Release alvo:** v0.2.0
+**Status:** etapa 2A concluída (testada com Ollama falso); 2B em andamento (baixar/remover feito); 2C pendente; em andamento no branch `feat/fase-2-ai` (empilhado sobre `feat/fase-1-core`) · **Release alvo:** v0.2.0
 **Portão:** testes com modelos reais só depois do upgrade de RAM para 24 GB.
 
 ## Objetivos
@@ -20,7 +20,7 @@ Conversar com modelos locais (Ollama) numa tela no padrão ChatGPT, com conversa
 - [ ] Markdown completo nas respostas (react-markdown) — hoje: parágrafos e blocos de código
 
 ### 2B — Gestão de modelos (precisa do notebook e de internet para baixar)
-- [ ] Baixar modelos (`ollama pull`) só com modo online ligado; remover modelos
+- [x] Baixar modelos (`ollama pull`) só com modo online ligado; remover modelos — rotas `POST /ai/models/pull` (NDJSON com progresso) e `DELETE /ai/models/{nome}`; painel "Gerenciar modelos" na tela de IA; testado com Ollama falso (branch `feat/fase-2-modelos`). Falta testar com o Ollama real.
 - [ ] Perfis Rápido / Padrão / Profundo / Embeddings com modelos escolhidos por medição real na RTX 5060
 - [ ] Descarga por ociosidade configurável (padrão 5 min)
 

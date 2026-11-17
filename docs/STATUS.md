@@ -11,6 +11,7 @@
   - **Shell** (`apps/desktop/src-tauri`): inicia e encerra o motor, CSP restrita, instalador NSIS.
   - **Scripts** Windows (`setup.ps1`, `dev.ps1`, `build.ps1`) e CI no GitHub Actions.
 - Fase 2A (branch `feat/fase-2-ai`, empilhado sobre a Fase 1): conversa com modelos locais pelo Ollama, streaming, um modelo por vez, checagem de memória, conversas salvas, tela de conversa no padrão ChatGPT. Testada com um Ollama falso ([relatório](testes/2026-11-17-fase2a-ia-local.md)).
+- Fase 2B, parte 1 (branch `feat/fase-2-modelos`, sobre `feat/fase-2-ai`): baixar modelos (só com modo online ligado) e remover modelos, pelo painel "Gerenciar modelos" da tela de IA. Testada com Ollama falso ([relatório](testes/2026-11-17-fase2b-gestao-modelos.md)).
 
 ## O que funciona (testado)
 
@@ -30,7 +31,8 @@
 3. Fazer merge da Fase 1 → release `v0.1.0`.
 4. Depois do merge da Fase 1: revisar e mergear `feat/fase-2-ai` (https://github.com/CristhianAlbino/A-Arca/pull/new/feat/fase-2-ai).
 5. Testar a IA com modelo real: instalar o Ollama, baixar um modelo pequeno (3–4B) enquanto a RAM é 8 GB; 7–9B depois do upgrade para 24 GB.
-6. Próximo a adiantar: etapa 2C (Claude/GPT/Gemini opcionais, chaves no Cofre do Windows) e 2B (baixar/remover modelos).
+6. Instalar o Ollama e baixar um modelo pequeno pelo painel "Gerenciar modelos" (teste real da 2B).
+7. Próximo a adiantar: resto da 2B (perfis Rápido/Padrão/Profundo, descarga por ociosidade configurável) e 2C (Claude/GPT/Gemini opcionais, chaves no Cofre do Windows).
 
 ## Pendências da Fase 1
 
