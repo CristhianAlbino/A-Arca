@@ -36,3 +36,14 @@ Sem erros (`index-BScDy3jc.js 251.07 kB`).
 
 - Download real pelo Ollama (precisa instalar o Ollama e ter internet).
 - Cancelar um download real no meio (com o falso, o download termina rápido demais).
+
+## Adendo — descarga por ociosidade e Markdown (mesma data e máquina)
+
+**Motor:** `76 passed, 1 warning in 37.90s` (7 testes novos: valores inválidos de `model_idle_unload_minutes` — 0, -5, 1441, "5", 2.5, true — recusados; o valor escolhido chega ao Ollama como `keep_alive: "30m"`).
+
+**Interface:** `tsc` sem erros; `vite build` OK (`index-CrYt_N6p.js 420.92 kB`, o aumento vem do react-markdown).
+
+**Navegador (Ollama falso):**
+- Resposta com `## título`, `**negrito**`, `` `código` ``, lista, tabela GFM e link: renderizou `h2`, `strong`, `code`, tabela com células "4" e "2"; o link virou texto sublinhado com o endereço no `title` (0 elementos `<a>`); `<b>html cru</b>` não virou HTML (0 elementos `<b>`).
+- Seletor "Tirar o modelo da memória depois de": opções 1 min, 5 min, 15 min, 30 min, 1 h; trocar para 30 min gravou `idle_unload_minutes: 30` no motor.
+- Capturas de tela não foram possíveis (janela do app minimizada); conferido pelo DOM.

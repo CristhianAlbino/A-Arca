@@ -25,3 +25,10 @@
 ## Decisões tomadas
 
 - O motor não baixa nada sozinho: quem baixa é o Ollama local. Mesmo assim, o download só é liberado com o modo online ligado, para manter a regra "offline primeiro" visível ao usuário.
+
+## Continuação (mesma sessão)
+
+- Decisão do usuário delegada: terminar 2A/2B antes da 2C (uma etapa por vez; 2C é opcional e online).
+- Markdown completo nas respostas (pendência da 2A) com react-markdown + remark-gfm, seguro por padrão.
+- Descarga por ociosidade configurável no painel de modelos; validação 1–1440 min no motor.
+- Perfis Rápido/Padrão/Profundo ficam para quando houver Ollama real para medir na RTX 5060.
