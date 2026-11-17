@@ -62,7 +62,7 @@ export function SystemStrip({ snapshot }: { snapshot: SystemSnapshot }) {
         value={`${gb(disk.free_bytes, 0)} livres`}
       />
       <div style={{ flex: "1 1 200px", color: "#e4e4e7" }}>
-        IA local: <span className="muted">chega na Fase 2</span>
+        IA local: <span className="muted">abra a aba IA</span>
       </div>
     </section>
   );

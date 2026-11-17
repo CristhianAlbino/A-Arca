@@ -130,3 +130,97 @@ export const engine = {
     api<{ id: string; label: string }>("/volumes", { method: "POST", body: JSON.stringify({ path, label }) }),
   rescanVolumes: () => api<VolumeStatus[]>("/volumes?rescan=true"),
 };
+
+// ---------- AI (Phase 2) ----------
+
+export interface AiModel {
+  name: string;
+  size_bytes: number;
+  family: string | null;
+  parameter_size: string | null;
+  quantization: string | null;
+  local: boolean;
+}
+
+export interface AiStatus {
+  provider: string;
+  url: string;
+  available: boolean;
+  version: string | null;
+  reason: string | null;
+  models: AiModel[];
+  loaded: { name: string; size_bytes: number; vram_bytes: number; expires_at: string | null }[];
+  default_model: string | null;
+}
+
+export interface ConversationSummary {
+  id: string;
+  title: string;
+  provider: string;
+  model: string | null;
+  created_at: string;
+  updated_at: string;
+  message_count: number;
+}
+
+export interface StoredMessage {
+  id: number;
+  role: "user" | "assistant" | "system";
+  content: string;
+  model: string | null;
+  status: "ok" | "interrupted" | "error";
+  stats: Record<string, number | null> | null;
+  created_at: string;
+}
+
+export interface ConversationDetail extends ConversationSummary {
+  messages: StoredMessage[];
+}
+
+export type ChatEvent =
+  | { type: "meta"; conversation_id: string; model: string }
+  | { type: "notice"; message: string }
+  | { type: "delta"; text: string }
+  | { type: "done"; stats: Record<string, number | null> }
+  | { type: "error"; message: string };
+
+export const ai = {
+  status: () => api<AiStatus>("/ai/status"),
+  conversations: () => api<ConversationSummary[]>("/ai/conversations"),
+  conversation: (id: string) => api<ConversationDetail>(`/ai/conversations/${encodeURIComponent(id)}`),
+  deleteConversation: (id: string) =>
+    api<{ deleted: string }>(`/ai/conversations/${encodeURIComponent(id)}`, { method: "DELETE" }),
+
+  /** Streams one answer. Resolves when the stream ends; abort with `signal` to stop. */
+  async chat(
+    body: { text: string; model: string; conversation_id?: string | null },
+    onEvent: (event: ChatEvent) => void,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    const { baseUrl, token } = await engineConfig();
+    const response = await fetch(baseUrl + "/ai/chat", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal,
+    });
+    if (!response.ok || !response.body) {
+      throw new EngineError(`Erro ${response.status} ao conversar com a IA.`, response.status);
+    }
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      let newline: number;
+      while ((newline = buffer.indexOf("\n")) >= 0) {
+        const line = buffer.slice(0, newline).trim();
+        buffer = buffer.slice(newline + 1);
+        if (line) onEvent(JSON.parse(line) as ChatEvent);
+      }
+    }
+    if (buffer.trim()) onEvent(JSON.parse(buffer) as ChatEvent);
+  },
+};

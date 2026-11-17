@@ -5,7 +5,7 @@ UI uses, backed by the REAL engine logic (arca_engine.service), just without
 FastAPI. Only for previews and visual tests in environments where FastAPI
 cannot be installed; the app itself always uses arca_engine/api/app.py.
 
-    python scripts/ui-preview/server.py <ui_dir> <port> <token>
+    python scripts/ui-preview/server.py <ui_dir> <port> <token> [ollama_url]
 """
 
 from __future__ import annotations
@@ -28,6 +28,8 @@ from arca_engine.security.token import bearer_from_header, tokens_match  # noqa:
 def main() -> None:
     ui_dir, port, token = sys.argv[1], int(sys.argv[2]), sys.argv[3]
     ctx = AppContext.create(resolve_app_paths().ensure(), token, include_drive_roots=False)
+    if len(sys.argv) > 4:
+        ctx.update_settings({"ollama_url": sys.argv[4]})
     service.engine_started(ctx)
 
     class Handler(SimpleHTTPRequestHandler):
@@ -53,7 +55,30 @@ def main() -> None:
                 self._send_json(401, {"detail": "Token ausente ou inválido."})
                 return True
             query = parse_qs(url.query)
+            path = url.path
             try:
+                if self.command == "POST" and path == "/ai/chat":
+                    data = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/x-ndjson")
+                    self.end_headers()
+                    for event in service.chat(ctx, data["text"], data.get("model"), data.get("conversation_id")):
+                        self.wfile.write(json.dumps(event, ensure_ascii=False).encode() + b"\n")
+                        self.wfile.flush()
+                    return True
+                if self.command == "GET" and path == "/ai/status":
+                    self._send_json(200, service.ai_status(ctx))
+                    return True
+                if self.command == "GET" and path == "/ai/conversations":
+                    self._send_json(200, service.list_conversations(ctx))
+                    return True
+                if path.startswith("/ai/conversations/"):
+                    conv_id = path.rsplit("/", 1)[1]
+                    if self.command == "GET":
+                        self._send_json(200, service.get_conversation(ctx, conv_id))
+                    else:
+                        self._send_json(200, service.delete_conversation(ctx, conv_id))
+                    return True
                 if self.command == "GET" and url.path == "/system":
                     self._send_json(200, service.system(ctx))
                 elif self.command == "GET" and url.path == "/activity":
@@ -74,6 +99,9 @@ def main() -> None:
                 super().do_GET()
 
         def do_POST(self):  # noqa: N802
+            self._api()
+
+        def do_DELETE(self):  # noqa: N802
             self._api()
 
     ThreadingHTTPServer(("127.0.0.1", port), Handler).serve_forever()

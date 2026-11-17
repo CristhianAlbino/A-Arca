@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { engine, type ActivityItem, type SystemSnapshot } from "./api/engine";
 import { TopBar } from "./components/TopBar";
 import { MODULES, type ModuleId } from "./modules";
+import { Chat } from "./screens/Chat";
 import { Home } from "./screens/Home";
 import { Placeholder } from "./screens/Placeholder";
 
@@ -40,7 +41,9 @@ export function App() {
           {error} Tentando de novo a cada {REFRESH_MS / 1000} segundos.
         </div>
       )}
-      {current === "inicio" ? (
+      {current === "ia" ? (
+        <Chat />
+      ) : current === "inicio" ? (
         snapshot ? (
           <Home snapshot={snapshot} activity={activity} onRefresh={refresh} onNavigate={setCurrent} />
         ) : (

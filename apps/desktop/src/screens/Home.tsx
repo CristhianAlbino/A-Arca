@@ -36,7 +36,7 @@ export function Home({ snapshot, activity, onRefresh, onNavigate }: Props) {
               {hasVolume ? "Ver armazenamento" : "Registrar volume"}
             </a>
             <button type="button" className="btn btn-secondary" onClick={() => onNavigate("ia")}>
-              Sobre a IA
+              Conversar com a IA
             </button>
           </div>
         </div>
