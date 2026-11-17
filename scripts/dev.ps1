@@ -1,4 +1,4 @@
-# Abre a ARCA em modo desenvolvimento (janela Tauri + motor Python do repositório).
+﻿# Abre a ARCA em modo desenvolvimento (janela Tauri + motor Python do repositório).
 # Uso:  .\scripts\dev.ps1            -> janela do app (Tauri)
 #       .\scripts\dev.ps1 -Browser   -> só no navegador (motor na porta 8765, token "dev")
 
@@ -17,6 +17,13 @@ if ($Browser) {
     npm run dev
     Pop-Location
 } else {
+    if (-not (Get-Command cargo -ErrorAction SilentlyContinue)) {
+        Write-Host "Rust (cargo) não encontrado." -ForegroundColor Red
+        Write-Host "1. Instale pelo rustup-init.exe em https://rustup.rs (aceite a instalação do Visual Studio Build Tools com C++)."
+        Write-Host "2. Feche e abra o PowerShell de novo e confira com: cargo --version"
+        Write-Host "Enquanto isso, dá para usar só no navegador:  .\scripts\dev.ps1 -Browser"
+        exit 1
+    }
     Push-Location "$root\apps\desktop"
     npm run tauri dev
     Pop-Location

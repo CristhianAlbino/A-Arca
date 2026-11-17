@@ -1,4 +1,4 @@
-# Prepara o ambiente de desenvolvimento da ARCA no Windows 11.
+﻿# Prepara o ambiente de desenvolvimento da ARCA no Windows 11.
 # Uso (PowerShell, na raiz do repositório):  .\scripts\setup.ps1
 #
 # Pré-requisitos instalados uma vez (precisam de internet):

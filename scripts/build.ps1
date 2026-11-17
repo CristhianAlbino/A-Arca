@@ -1,4 +1,4 @@
-# Gera o instalador da ARCA (NSIS) com o motor empacotado.
+﻿# Gera o instalador da ARCA (NSIS) com o motor empacotado.
 # Uso:  .\scripts\build.ps1
 # Saída: apps\desktop\src-tauri\target\release\bundle\nsis\ARCA_<versão>_x64-setup.exe
 

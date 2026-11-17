@@ -38,3 +38,21 @@ Novos nesta etapa (15): provedor Ollama (status, modelos, streaming, estatístic
 | 4. Sem Ollama, a tela explica o que fazer | Fechar o Ollama e abrir a aba IA | Testado (motor); visual no notebook |
 | 5. Nada online sai do computador | netguard + Firewall | Testado (motor) |
 | 6. Testes registrados | Este arquivo | **Passou** (sessão) |
+
+## 3. Notebook do usuário (Windows 11) — `scripts\setup.ps1`
+
+- **Máquina:** Acer Nitro V16 do usuário, Windows 11, Python 3.12 (rodas `cp312-win_amd64`), branch `feat/fase-2-ai`
+- **Data:** 2026-11-17 (saída enviada pelo usuário)
+
+```
+==> Testes do motor
+.......................................................                                [100%]
+===================================== warnings summary ======================================
+.venv\Lib\site-packages\fastapi\testclient.py:1
+  ... StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+55 passed, 1 warning in 23.44s
+```
+
+Primeira execução **com FastAPI**: os 6 testes de `test_api.py` passaram, inclusive "requisição sem token = 401" (critério 3 da Fase 1), CORS da janela Tauri e streaming de `/ai/chat`. O aviso é de uma dependência (Starlette) e não afeta o funcionamento.
+
+`scripts\dev.ps1` parou em `cargo metadata ... program not found`: Rust ainda não instalado ou PowerShell aberto antes da instalação. O script agora verifica isso e explica o que fazer.
