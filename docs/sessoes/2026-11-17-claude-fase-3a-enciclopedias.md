@@ -12,9 +12,16 @@
 - Interface: tela Conhecimento (lista, filtro, busca, leitor com Voltar; links externos não navegam; segunda limpeza de HTML no navegador).
 - Relatório: [testes/2026-11-17-fase3a-enciclopedias.md](../testes/2026-11-17-fase3a-enciclopedias.md).
 
+## Continuação
+
+- PyInstaller não levava o `libzim`: corrigido com `--collect-all libzim` e checagem `--check-deps` no build.
+- `build.ps1` não aborta mais por saída em stderr no PowerShell 5.1.
+- Catálogo persistente de ZIMs (migração 3).
+- `ruff` limpo.
+
 ## Pendente
 
-- Testar com ZIMs reais do Drive; conferir PyInstaller; catálogo persistente.
+- Testar com ZIMs reais do Drive.
 - 3B (busca na biblioteca própria) e 3C (semântica/RAG, depende da IA).
 
 ## Não testado (e por quê)

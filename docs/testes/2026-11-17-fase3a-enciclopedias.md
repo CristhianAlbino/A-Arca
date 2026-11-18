@@ -38,7 +38,30 @@ Sem erros (`index-DmP-WGBi.js 426.52 kB`).
 
 Conferido pelo DOM (captura de tela indisponível com a janela do app minimizada).
 
+## Adendo — empacotamento e catálogo (mesma data e máquina)
+
+**Empacotamento:** o motor gerado pelo PyInstaller (`build.ps1` como estava) respondia `{"detail":"Leitor de ZIM (python-libzim) não instalado no motor."}` em `/knowledge/zims`: o pacote não tinha `libzim.cp312-win_amd64.pyd` nem `zim-9.dll`. Com `--collect-all libzim`:
+
+```
+> dist\arca-engine\arca-engine.exe --check-deps
+ok       fastapi
+ok       uvicorn
+ok       psutil
+ok       libzim.reader
+ok       libzim.search
+ok       libzim.suggestion
+```
+
+O motor empacotado, com um volume temporário contendo o ZIM de teste, listou `Enciclopédia de teste (3 itens)`, achou `Rádio amador` na busca e leu `Agua` → `Água potável`.
+
+**build.ps1:** com `$ErrorActionPreference = "Stop"`, o Windows PowerShell 5.1 abortava o build na primeira linha `INFO` que o PyInstaller escreve no stderr quando a saída é redirecionada. Trocado por checagem de `$LASTEXITCODE` em cada etapa.
+
+**Motor:** `88 passed, 1 warning in 34.47s`. Novos: enciclopédia de disco desconectado continua listada (`available: false`, nome do disco), a busca a ignora, ler dá 404 citando o disco; o catálogo sobrevive a reiniciar o motor e volta a ficar disponível ao reconectar.
+
+**Navegador:** volume "SSD-TESTE" registrado com o ZIM de teste e depois "desconectado" (marcador renomeado). Primeira tentativa: a lista só marcava "desconectado" depois de clicar em "Procurar" (usava o resultado guardado da última procura). Corrigido: a lista confere na hora se o disco de cada enciclopédia continua conectado (teste `test_unplug_seen_without_rescan`, 13 testes de enciclopédia passando). Depois de "Procurar", a tela mostrou "Enciclopédia de teste · por · 3 itens · 59 KB · Disco “SSD-TESTE” desconectado", botão desativado e campo de busca desativado.
+
+**Lint:** `ruff check arca_engine tests` → `All checks passed!` (havia 28 avisos, a maioria anterior a esta sessão; a sugestão SIM118 em `ai/chat.py` foi recusada porque `sqlite3.Row` itera valores, não chaves).
+
 ## Não testado
 
 - ZIMs reais grandes (Wikipédia PT/EN): desempenho da busca e da listagem.
-- Empacotamento do `libzim` no instalador (PyInstaller).

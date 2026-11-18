@@ -18,8 +18,8 @@ Ler e buscar enciclopédias offline (Wikipédia PT/EN, WikiMed, Wikibooks…) e 
 - [x] Links internos navegam dentro da ARCA (com Voltar); links externos só mostram o endereço
 - [x] Tela Conhecimento: lista de enciclopédias, filtro por enciclopédia, busca, leitor
 - [ ] Teste com ZIMs reais (Wikipédia PT/EN) do Drive
-- [ ] Conferir o empacotamento do `libzim` no PyInstaller (`scripts\build.ps1`)
-- [ ] Catálogo persistente no SQLite (hoje a lista é refeita ao procurar), para mostrar enciclopédias de discos desconectados
+- [x] Empacotamento do `libzim` no PyInstaller: faltava (`--collect-all libzim`); o build agora roda `arca-engine --check-deps` e falha se faltar biblioteca
+- [x] Catálogo persistente no SQLite (migração 3, tabela `zims`): enciclopédias de discos desconectados continuam na lista, marcadas como indisponíveis
 
 Decisão de implementação: em vez de rodar o `kiwix-serve` (ADR 0005), a primeira versão lê os ZIMs direto com `python-libzim`, que já traz busca e leitura; evita mais um processo e uma porta. O `kiwix-serve` continua opção se for preciso navegar ZIMs com JavaScript (ex.: PhET).
 
