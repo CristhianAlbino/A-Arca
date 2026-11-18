@@ -1,7 +1,7 @@
 # 2026-11-18 — ChatGPT — relevância de fontes na Fase 3C
 
 - **Fase:** 3C — busca e respostas com fontes (RAG inicial, sem embeddings)
-- **Branch:** `fix/rag-filtrar-fontes-fracas-chatgpt`, derivada de `feat/fase-3-biblioteca`
+- **Branch / PR:** `fix/rag-filtrar-fontes-fracas-chatgpt`, derivada de `feat/fase-3-biblioteca` · [PR #2 (draft)](https://github.com/CristhianAlbino/A-Arca/pull/2)
 - **Papel:** revisão de qualidade de busca, pequena implementação isolada e testes de regressão
 
 ## Feito
@@ -13,7 +13,7 @@
 
 ## Pendente
 
-- Abrir PR **em revisão** contra `feat/fase-3-biblioteca` e pedir revisão antes do merge.
+- Revisar o [PR #2 (draft)](https://github.com/CristhianAlbino/A-Arca/pull/2) contra `feat/fase-3-biblioteca` e validar antes do merge.
 - Medir precisão e recuperação com acervo real (especialmente Salmo 23, tratamento de queimadura e Prim).
 - Investigar causa exata do CI no painel do GitHub. Não alterar workflow às cegas.
 - Implementar busca semântica e melhores escores na etapa seguinte; este filtro não resolve respostas inventadas.
