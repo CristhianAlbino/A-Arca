@@ -86,6 +86,13 @@ O motor empacotado, com um volume temporário contendo o ZIM de teste, listou `E
 - **Falha 3 — duas ARCAs ao mesmo tempo:** abrir o app de novo iniciava uma segunda janela e um segundo motor usando o mesmo banco. Corrigido com `tauri-plugin-single-instance` (a segunda abertura traz a janela existente para frente).
 - Motor: `90 passed, 1 warning in 40.94s`; `ruff`: `All checks passed!`; `cargo build` sem avisos.
 
+### Reinstalação com o instalador do commit `bf93877` (usuário, pelo Explorer)
+
+- `arca.exe` atualizado (23:16); o instalador abriu a ARCA ao concluir: um `arca.exe` e um `engine\arca-engine.exe` filho, ambos em `%LOCALAPPDATA%\ARCA`.
+- Pedir para abrir a ARCA de novo (atalho/`open_application`) só trouxe a janela existente para frente; continuaram 1 app e 1 motor. → instância única **passou**.
+- Tela Início carregou com dados reais (RAM 6,9/8 GB, VRAM 0,5/8 GB, 199 GB livres, OFFLINE).
+- Tela Conhecimento: sem erro; mostra as instruções de "Nenhuma enciclopédia encontrada"; "Procurar" respondeu normalmente (nenhum volume registrado ainda). → falha 1 **corrigida** no app instalado.
+
 ## Não testado
 
 - ZIMs reais grandes (Wikipédia PT/EN): desempenho da busca e da listagem.

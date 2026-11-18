@@ -1,6 +1,6 @@
 # STATUS da ARCA
 
-**Última atualização:** 2026-11-17 · **Fase atual:** 1 — ARCA CORE (compila e roda no notebook; instalador gerado; faltam Wi-Fi desligado, pendrive e instalar o .exe) · **Adiantado:** Fase 2A — IA local, no branch `feat/fase-2-ai`
+**Última atualização:** 2026-11-17 · **Fase atual:** 1 — ARCA CORE (instalada e funcionando no notebook; faltam Wi-Fi desligado e pendrive) · **Adiantado:** Fase 2A — IA local, no branch `feat/fase-2-ai`
 
 ## O que existe
 
@@ -23,13 +23,13 @@
 
 ## O que não foi testado
 
-- App com Wi-Fi desligado, volume em pendrive, rodar o instalador (o `.exe` foi gerado e a versão final abriu e fechou com o motor empacotado, mas não foi instalado), IA com modelo real (Ollama não instalado).
+- App com Wi-Fi desligado, volume em pendrive, IA com modelo real (Ollama não instalado), enciclopédia ZIM real. O app instalado já foi testado (ver relatório da 3A).
 - Atenção: as correções do `build.ps1` (libzim no pacote e stderr no PowerShell 5.1) estão só no branch `feat/fase-3-kiwix`; nos branches anteriores o build falha ou sai sem o leitor de ZIM.
 
 ## Próximos passos
 
 1. **Usuário:** abrir o PR de `feat/fase-1-core` no GitHub (https://github.com/CristhianAlbino/A-Arca/pull/new/feat/fase-1-core).
-2. **No notebook:** abrir o app com Wi-Fi desligado, testar um pendrive e instalar `apps\desktop\src-tauri\target\release\bundle\nsis\ARCA_0.1.0_x64-setup.exe` (gerado em 2026-11-17 a partir de `feat/fase-3-kiwix`).
+2. **No notebook:** a ARCA está instalada (2026-11-17, instalador de `feat/fase-3-kiwix`, commit `bf93877`) e abre com Início e Conhecimento funcionando. Falta abrir com Wi-Fi desligado e testar um pendrive.
 3. Fazer merge da Fase 1 → release `v0.1.0`.
 4. Depois do merge da Fase 1: revisar e mergear `feat/fase-2-ai` (https://github.com/CristhianAlbino/A-Arca/pull/new/feat/fase-2-ai).
 5. Testar a IA com modelo real: instalar o Ollama, baixar um modelo pequeno (3–4B) enquanto a RAM é 8 GB; 7–9B depois do upgrade para 24 GB.
