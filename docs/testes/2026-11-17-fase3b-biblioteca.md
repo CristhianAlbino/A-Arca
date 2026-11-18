@@ -45,4 +45,7 @@ Conferido pelo DOM.
 - `--check-deps`: `ok` para fastapi, uvicorn, psutil, libzim (3 módulos) e `pypdf`.
 - `ARCA_0.1.0_x64-setup.exe` gerado (24.97 MiB).
 - Motor empacotado com volume temporário contendo um PDF: indexação `{'added': 1, ... 'failed': 0}`; busca `queimadura` → `('Manual', 'pdf')`.
-- Instalar essa versão no notebook fica com o usuário (abrir o instalador pelo Explorer, não pelo Claude).
+- Instalada pelo usuário (instalador aberto pelo Explorer). `arca.exe` de 23:32; `--check-deps` do motor instalado: tudo `ok`, inclusive `pypdf`.
+- O instalador abriu a ARCA ao concluir; motor escutando em `127.0.0.1:57807`. A tela ficou ~40 s em "Conectando ao motor…" com ~700 MB de RAM livre (de 8 GB) e depois carregou normalmente.
+- Conhecimento: seções Enciclopédias e Biblioteca presentes; "Indexar" sem volume registrado → "0 documentos · Última indexação: 0 novos, 0 atualizados, 0 removidos", sem erro.
+- Observação: a partida do motor empacotado fica lenta com pouca RAM livre; reavaliar depois do upgrade para 24 GB (se continuar lento, mostrar na tela que o motor está iniciando há X segundos).

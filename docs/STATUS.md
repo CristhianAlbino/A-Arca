@@ -30,7 +30,7 @@
 ## Próximos passos
 
 1. **Usuário:** abrir o PR de `feat/fase-1-core` no GitHub (https://github.com/CristhianAlbino/A-Arca/pull/new/feat/fase-1-core).
-2. **No notebook:** a ARCA está instalada (2026-11-17, instalador de `feat/fase-3-kiwix`, commit `bf93877`) e abre com Início e Conhecimento funcionando. Falta abrir com Wi-Fi desligado e testar um pendrive.
+2. **No notebook:** a ARCA está instalada (2026-11-17, instalador de `feat/fase-3-biblioteca`, commit `c579040`) e abre com Início e Conhecimento (enciclopédias e biblioteca) funcionando. Falta abrir com Wi-Fi desligado e testar um pendrive.
 3. Fazer merge da Fase 1 → release `v0.1.0`.
 4. Depois do merge da Fase 1: revisar e mergear `feat/fase-2-ai` (https://github.com/CristhianAlbino/A-Arca/pull/new/feat/fase-2-ai).
 5. Testar a IA com modelo real: instalar o Ollama, baixar um modelo pequeno (3–4B) enquanto a RAM é 8 GB; 7–9B depois do upgrade para 24 GB.
