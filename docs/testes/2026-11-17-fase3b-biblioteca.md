@@ -39,4 +39,10 @@ Conferido pelo DOM.
 
 - Acervo real (milhares de PDFs do Drive): tempo de indexação e tamanho do banco.
 - PDFs escaneados reais (devem aparecer como "sem texto" até o OCR da Fase 6).
-- Motor empacotado com `pypdf` (`--check-deps` já inclui `pypdf`; instalador não foi gerado de novo nesta etapa).
+
+## 4. Instalador (`scripts\build.ps1` a partir do commit `c579040`, sem edições durante o build)
+
+- `--check-deps`: `ok` para fastapi, uvicorn, psutil, libzim (3 módulos) e `pypdf`.
+- `ARCA_0.1.0_x64-setup.exe` gerado (24.97 MiB).
+- Motor empacotado com volume temporário contendo um PDF: indexação `{'added': 1, ... 'failed': 0}`; busca `queimadura` → `('Manual', 'pdf')`.
+- Instalar essa versão no notebook fica com o usuário (abrir o instalador pelo Explorer, não pelo Claude).
