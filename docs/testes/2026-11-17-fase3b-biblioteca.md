@@ -94,3 +94,9 @@ Todos com título correto. **Ponto de atenção:** `pypdf` leva ~20–50 s por l
 **Navegador** (volume temporário com o mesmo livro em EPUB e TXT, viewport 1280×800): busca `katniss` → "1 resultado", "Também em: Texto"; leitor "1 de 2 ocorrências", primeira marca visível no meio da tela (390/800 px); "Próxima" → "2 de 2", também visível; barra fixa no topo.
 
 **Instalador** do commit `9ed6c76`: 7 dependências `ok`, 25.04 MiB. Inclui também a correção do caminho relativo (`6a7a9c9`). Ainda não instalado.
+
+### App instalado (instalador do `9ed6c76`, 2026-11-18)
+
+- Busca `katniss` nos livros reais: **3 resultados** (antes 5); "Amanhecer na Colheita" uma vez só (EPUB), com "Também em: PDF, PDF".
+- Leitor da Trilogia: "1 de 300+ ocorrências", palavra atual destacada e a tela já posicionada nela.
+- **Defeito visto só no app:** ao rolar, a barra "Anterior/Próxima" ficava escondida atrás do cabeçalho da ARCA (os dois fixos no topo; no teste do navegador a página não rolava o suficiente para aparecer). Corrigido no commit seguinte: a barra fica logo abaixo do cabeçalho, medindo a altura real dele. **Ainda não testado no app instalado.**
