@@ -52,3 +52,17 @@ def test_blocked_network_shows_up_in_activity(ctx):
         ctx.netguard.check("https://example.com/")
     assert service.network_attempts(ctx, only_blocked=True)[0]["host"] == "example.com"
     assert service.activity(ctx)[0]["kind"] == "network"
+
+
+def test_register_volume_needs_full_path(app_paths, tmp_path):
+    from arca_engine.context import AppContext
+
+    ctx = AppContext.create(app_paths, token="t" * 43, include_drive_roots=False)
+    try:
+        for bad in ["ollama", "pasta/sub", "  "]:
+            with pytest.raises(service.ServiceError, match="caminho completo"):
+                service.register_volume(ctx, bad, "X")
+        (tmp_path / "ok").mkdir()
+        assert service.register_volume(ctx, f'"{tmp_path / "ok"}"', "OK")["label"] == "OK"
+    finally:
+        ctx.close()

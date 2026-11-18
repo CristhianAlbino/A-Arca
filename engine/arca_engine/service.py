@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Iterator
+from pathlib import Path
 from typing import Any
 
 from . import __version__
@@ -61,6 +62,10 @@ def register_volume(ctx: AppContext, path: str, label: str) -> dict[str, Any]:
     label = label.strip()
     if not label:
         raise ServiceError("Informe um nome para o volume.")
+    path = path.strip().strip('"')
+    # A relative path would resolve against the engine's own folder: never what the user means.
+    if not Path(path).is_absolute():
+        raise ServiceError(r"Informe o caminho completo da pasta, por exemplo G:\Meu Drive\ARCA.")
     try:
         marker = ctx.volumes.register(path, label)
     except Exception as exc:  # VolumeError, OSError
