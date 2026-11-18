@@ -21,7 +21,8 @@ Conversar com modelos locais (Ollama) numa tela no padrão ChatGPT, com conversa
 
 ### 2B — Gestão de modelos (precisa do notebook e de internet para baixar)
 - [x] Baixar modelos (`ollama pull`) só com modo online ligado; remover modelos — rotas `POST /ai/models/pull` (NDJSON com progresso) e `DELETE /ai/models/{nome}`; painel "Gerenciar modelos" na tela de IA; testado com Ollama falso (branch `feat/fase-2-modelos`). Falta testar com o Ollama real.
-- [ ] Perfis Rápido / Padrão / Profundo / Embeddings com modelos escolhidos por medição real na RTX 5060
+- [ ] Perfis Rápido / Padrão / Profundo / Embeddings com modelos escolhidos por medição real na RTX 5060 — primeira medição: `qwen3.5:4b` ≈ 51 tokens/s, primeira palavra em 1 s ([relatório](../testes/2026-11-18-ia-real-qwen.md))
+- [x] Chat com modelo real (2026-11-18): `qwen3.5:4b` pelo Ollama 0.40.16; corrigido o "raciocínio" oculto de modelos que pensam (`think: false`)
 - [x] Descarga por ociosidade configurável (padrão 5 min; 1 min a 24 h) no painel "Gerenciar modelos"
 
 ### 2C — IA online opcional
