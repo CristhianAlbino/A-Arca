@@ -84,7 +84,7 @@ def gather(ctx, question: str) -> list[Source]:
     if not words:
         return sources
     try:
-        for hit in ctx.library.passages(words, limit=DOC_SOURCES):
+        for hit in ctx.library.passages(words, limit=DOC_SOURCES * 2):
             # FTS5's fallback uses OR: a passage matching only a generic word ("casa")
             # is weak evidence for a multi-term question ("tratar queimadura em casa").
             if not relevant_excerpt(hit["title"], hit["excerpt"], words):
@@ -96,6 +96,8 @@ def gather(ctx, question: str) -> list[Source]:
                     excerpt=hit["excerpt"][:EXCERPT_CHARS], ref={"doc_id": hit["id"]},
                 )
             )
+            if len(sources) >= DOC_SOURCES:
+                break
     except Exception:
         log.exception("Falha ao buscar trechos na biblioteca")
     try:
