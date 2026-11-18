@@ -96,3 +96,17 @@ def test_stems_join_word_forms_but_short_names_stay_exact():
     assert retrieve.matched_words("A primeira vez no Prime Video", ["prim"]) == 0
     assert retrieve.matched_words("Prim correu para casa", ["prim"]) == 1
     assert retrieve.fts_terms(["prim", "queimadura"]) == ['"prim"', '"queimad"*']
+
+
+def test_best_window_prefers_the_passage_over_a_table_of_contents():
+    toc = "Salmos\n" + "\n".join(str(n) for n in range(1, 151)) + "\n\n"
+    filler = "Palavras de outros livros sem relação nenhuma com a pergunta feita aqui. " * 40
+    psalm = "23\n\nSalmo de Davi:\n\n1 O SENHOR é meu pastor, nada me faltará. 2 Ele me faz deitar em pastos verdes."
+    text = toc + filler + psalm + filler
+    window = retrieve.best_window(text, retrieve.keywords("o que diz salmos 23?"))
+    assert "meu pastor" in window and "\n24\n" not in window
+
+
+def test_passages_use_best_window(ctx):
+    hit = ctx.library.passages(retrieve.keywords("água potável sem filtro"), limit=1)[0]
+    assert "ferva por um minuto" in hit["excerpt"]

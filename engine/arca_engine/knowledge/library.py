@@ -389,7 +389,7 @@ class Library:
     def passages(self, words: list[str], limit: int = 2) -> list[dict[str, Any]]:
         """Best passages for an AI answer, one per book (copies grouped), from documents with
         text: those with EVERY keyword first, then (if still short) those with ANY of them."""
-        from .retrieve import fts_terms  # retrieve does not import this module back
+        from .retrieve import best_window, fts_terms, looks_like_contents  # no import cycle
 
         terms = fts_terms([w for w in words if _WORD.fullmatch(w)])
         if not terms:
@@ -416,6 +416,13 @@ class Library:
                 break
         for p in picked:
             p.pop("_key")
+            # FTS5's snippet is usually good, but can land on a table of contents
+            # ("Salmos 1 2 3 … 23 …"); then look for the best stretch ourselves.
+            if looks_like_contents(p["excerpt"]):
+                body = self.db.execute("SELECT body FROM docs_fts WHERE rowid = ?", (p["id"],)).fetchone()
+                window = best_window(body["body"], words) if body else ""
+                if window:
+                    p["excerpt"] = window
         return picked
 
     def read(self, doc_id: int) -> dict[str, Any]:

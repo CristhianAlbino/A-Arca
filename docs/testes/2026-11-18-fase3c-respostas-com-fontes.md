@@ -43,3 +43,7 @@ Tempos: fontes em 1–10 s (a primeira busca em cada ZIM é a mais lenta), prime
 
 - Fontes irrelevantes ainda entram ([3]/[4] no Salmo 23); o modelo de 4B às vezes cita uma fonte para algo que veio do conhecimento próprio. Próximos passos: limiar de relevância, busca semântica (embeddings), testar `qwen3.5:9b` com 24 GB de RAM.
 - Saúde e segurança: a regra "só com fonte A/B" da Fase 4 ainda não está aplicada; as respostas mostram as fontes, mas o modelo pode completar com conhecimento próprio.
+
+## 5. Trecho em sumário (app instalado, 2026-11-18)
+
+No app instalado, "o que diz salmos 23?" trouxe como fonte o **sumário** dos Salmos (lista de números); o clique abriu e marcou exatamente esse trecho. Correção (commit seguinte): se o trecho do índice parece sumário/lista, a ARCA procura a melhor janela no texto, pesando palavras da pergunta próximas umas das outras. Texto real da Bíblia: "O que diz o Salmo 23?" → "23 Salmo de Davi: 1 O SENHOR é meu pastor…". Com "salmos 23" (plural) ainda vem uma citação de "Salmos 118:22-23" em outro livro. Motor: 112 testes, ruff ok. **Ainda não está no instalador.**

@@ -124,6 +124,72 @@ def matched_words(text: str, words: list[str]) -> int:
     return count
 
 
+def _fold_same_length(text: str) -> str:
+    """Like fold(), but one character out per character in, so positions match the original."""
+    out = []
+    for c in text:
+        if c.isascii():
+            out.append(c.lower())
+        else:
+            base = unicodedata.normalize("NFD", c)[:1] or c
+            out.append(base.lower()[:1] or c)
+    return "".join(out)
+
+
+def _prose_quality(text: str) -> float:
+    """0..1: share of letters, scaled down when lines are very short (lists, tables of contents)."""
+    letters = sum(c.isalpha() for c in text) / max(1, len(text))
+    lines = [ln for ln in text.split("\n") if ln.strip()]
+    avg_line = sum(len(ln) for ln in lines) / max(1, len(lines))
+    return letters * min(1.0, avg_line / 40)
+
+
+def looks_like_contents(text: str) -> bool:
+    """A table of contents or list of numbers rather than running text."""
+    return _prose_quality(text) < 0.25
+
+
+def best_window(text: str, words: list[str], size: int = 700, max_candidates: int = 3000) -> str:
+    """The stretch of `text` (about `size` characters) that best answers the keywords: most
+    distinct keywords nearby, mostly running prose. Tables of contents and lists of numbers
+    ("Salmos 1 2 3 … 23 …") lose to the passage itself. Empty if no keyword appears."""
+    folded = _fold_same_length(text)
+    # (needle, is_stem): long words match by stem at a word start; short ones as whole words.
+    needles = {(stem(fold(w)), True) if len(w) >= 6 else (fold(w), False) for w in words}
+    positions: list[int] = []
+    for n, is_stem in sorted(needles, key=lambda x: len(x[0]), reverse=True):
+        start = 0
+        while len(positions) < max_candidates:
+            at = folded.find(n, start)
+            if at < 0:
+                break
+            before = folded[at - 1] if at > 0 else " "
+            after = folded[at + len(n)] if at + len(n) < len(folded) else " "
+            if not before.isalnum() and (is_stem or not after.isalnum()):
+                positions.append(at)
+            start = at + 1
+    best_score, best_at = -1.0, -1
+    for at in positions:
+        lo = max(0, at - 80)  # start just before the match: the passage follows it
+        window = text[lo: lo + size]
+        # Keywords right next to each other ("23 … Salmo de Davi") weigh most.
+        near = matched_words(text[max(0, at - 60): at + 60], words)
+        score = near * 10 + matched_words(window, words) * 3 + _prose_quality(window) * 5
+        if score > best_score:
+            best_score, best_at = score, lo
+    if best_at < 0:
+        return ""
+    lo = best_at
+    # start and end on word boundaries
+    if lo > 0:
+        space = text.find(" ", lo)
+        lo = space + 1 if 0 <= space < lo + 40 else lo
+    hi = min(len(text), lo + size)
+    space = text.rfind(" ", lo, hi)
+    hi = space if space > lo + size // 2 else hi
+    return ("…" if lo > 0 else "") + text[lo:hi].strip() + ("…" if hi < len(text) else "")
+
+
 def _zim_hits(ctx, words: list[str]) -> list[tuple[dict[str, Any], bool]]:
     """(hit, strict). The ZIM index wants every word; a question rarely matches that. Try the
     whole set, then the most specific (longest) words one by one. Hits from those one-word
