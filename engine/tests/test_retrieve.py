@@ -88,3 +88,11 @@ def test_chat_without_sources_when_turned_off(ctx, fake):
 
 def test_no_match_means_no_sources(ctx):
     assert retrieve.gather(ctx, "xilofone quântico intergaláctico") == []
+
+
+def test_stems_join_word_forms_but_short_names_stay_exact():
+    assert retrieve.stem("tratar") == retrieve.stem("tratamento")[: len(retrieve.stem("tratar"))]
+    assert retrieve.matched_words("O tratamento de queimaduras leves", ["tratar", "queimadura"]) == 2
+    assert retrieve.matched_words("A primeira vez no Prime Video", ["prim"]) == 0
+    assert retrieve.matched_words("Prim correu para casa", ["prim"]) == 1
+    assert retrieve.fts_terms(["prim", "queimadura"]) == ['"prim"', '"queimad"*']

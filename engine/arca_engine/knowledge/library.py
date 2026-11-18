@@ -387,25 +387,29 @@ class Library:
         return results
 
     def passages(self, words: list[str], limit: int = 2) -> list[dict[str, Any]]:
-        """Best passages for an AI answer: ANY of the keywords (unlike search, which needs all),
-        one per book (copies grouped), from documents with text."""
-        terms = [f'"{w}"*' for w in words if _WORD.fullmatch(w)]
+        """Best passages for an AI answer, one per book (copies grouped), from documents with
+        text: those with EVERY keyword first, then (if still short) those with ANY of them."""
+        from .retrieve import fts_terms  # retrieve does not import this module back
+
+        terms = fts_terms([w for w in words if _WORD.fullmatch(w)])
         if not terms:
             return []
-        rows = self.db.execute(
-            """
+        sql = """
             SELECT d.id, d.title, d.format, d.chars, v.label AS volume_label,
                    snippet(docs_fts, 1, '', '', '…', 64) AS excerpt
             FROM docs_fts JOIN docs d ON d.id = docs_fts.rowid JOIN volumes v ON v.id = d.volume_id
             WHERE docs_fts MATCH ? AND d.status = 'ok'
             ORDER BY bm25(docs_fts, 5.0, 1.0)
             LIMIT ?
-            """,
-            (" OR ".join(terms), limit * 4),
-        ).fetchall()
+        """
+        # Only the text column: a keyword in the book's title ("Jogos Vorazes") must not count,
+        # or the passage picked from the text may not mention the rest of the question.
+        rows = self.db.execute(sql, (f"body : ({' '.join(terms)})", limit * 4)).fetchall()  # AND
+        if len(terms) > 1:
+            rows += self.db.execute(sql, (f"body : ({' OR '.join(terms)})", limit * 4)).fetchall()
         picked: list[dict[str, Any]] = []
         for r in rows:
-            if any(_same_book(p, r) for p in picked):
+            if any(p["id"] == r["id"] or _same_book(p, r) for p in picked):
                 continue
             picked.append({**dict(r), "_key": (_fold(r["title"]), r["chars"])})
             if len(picked) == limit:

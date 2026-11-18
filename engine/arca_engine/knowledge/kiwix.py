@@ -280,8 +280,11 @@ class ZimLibrary:
             "html": clean_article_html(raw, entry.path, archive),
         }
 
-    def article_text(self, zim_id: str, path: str, max_chars: int = 900) -> str:
-        """Plain text from the start of an article (its summary), for an AI answer."""
+    def article_text(
+        self, zim_id: str, path: str, max_chars: int = 900, words: list[str] | None = None
+    ) -> str:
+        """Plain text of an article for an AI answer: its summary, or with `words`, the
+        paragraphs that mention them most (e.g. the treatment part of "Queimadura")."""
         _info, archive = self._archive(zim_id)
         try:
             entry = archive.get_entry_by_path(path)
@@ -300,10 +303,33 @@ class ZimLibrary:
         text = re.sub(r"[ \t]+", " ", text)
         text = re.sub(r"\s*\n\s*", "\n", text).strip()
         text = re.sub(r" ([.,;:!?)])", r"\1", text)
+        if words:
+            text = _best_paragraphs(text, words, max_chars)
         if len(text) > max_chars:
             cut = text.rfind(" ", 0, max_chars)
             text = text[: cut if cut > max_chars // 2 else max_chars] + "…"
         return text
+
+
+def _best_paragraphs(text: str, words: list[str], max_chars: int) -> str:
+    """Paragraphs (long enough to say something) ranked by how many keywords they mention,
+    kept in article order, up to max_chars. Without any match: the start of the article."""
+    from .retrieve import matched_words  # retrieve does not import this module back
+
+    paragraphs = [p.strip() for p in text.split("\n") if len(p.strip()) >= 60]
+    scored = sorted(
+        ((matched_words(p, words), -i, p) for i, p in enumerate(paragraphs)), reverse=True
+    )
+    if not scored or scored[0][0] == 0:
+        return text
+    chosen: list[tuple[int, str]] = []
+    size = 0
+    for score, neg_i, p in scored:
+        if score == 0 or size >= max_chars:
+            break
+        chosen.append((-neg_i, p))
+        size += len(p)
+    return "\n".join(p for _, p in sorted(chosen))
 
 
 # --- HTML cleaning ---------------------------------------------------------------
