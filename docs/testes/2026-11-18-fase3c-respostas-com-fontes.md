@@ -34,6 +34,11 @@ Tempos: fontes em 1–10 s (a primeira busca em cada ZIM é a mais lenta), prime
 - Clicar em [1] → tela Conhecimento com a Bíblia Livre aberta e **"Trecho citado pela IA"** marcando "23 Salmo de Davi: 1 O SENHOR é meu pastor, nada me faltará…".
 - Uma aba oculta do navegador travou ao renderizar a Bíblia inteira (4 milhões de caracteres) enquanto scripts de teste esperavam; numa aba nova o mesmo fluxo funcionou. Observar no app instalado.
 
+## 4. Instalador
+
+- Primeira tentativa: o usuário instalou um instalador **antigo** (app de 00:52, sem a 3C). A checagem "build terminou" da sessão leu o log do build anterior, ainda no arquivo, e o aviso de "instalador pronto" saiu antes do build novo terminar (02:11:31). Lição: apagar o log antes de cada build e conferir a data do `.exe` antes de abrir o instalador.
+- Instalador correto: `ARCA_0.1.0_x64-setup.exe` de 02:11:31 (26.275.745 bytes), aberto pelo Explorer para o usuário.
+
 ## Limitações conhecidas
 
 - Fontes irrelevantes ainda entram ([3]/[4] no Salmo 23); o modelo de 4B às vezes cita uma fonte para algo que veio do conhecimento próprio. Próximos passos: limiar de relevância, busca semântica (embeddings), testar `qwen3.5:9b` com 24 GB de RAM.
