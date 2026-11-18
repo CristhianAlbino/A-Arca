@@ -79,7 +79,18 @@ Todos com título correto. **Ponto de atenção:** `pypdf` leva ~20–50 s por l
 
 ### Melhorias anotadas a partir do uso real
 
-1. **Duplicatas:** o mesmo livro aparece 3 vezes (EPUB + 2 PDFs iguais). Agrupar resultados do mesmo título/texto ou avisar duplicatas na indexação.
-2. **Leitor abre no início:** deveria rolar até o primeiro trecho encontrado e destacar a palavra.
+1. **Duplicatas:** o mesmo livro aparecia 3 vezes (EPUB + 2 PDFs iguais). **Feito** (ver abaixo).
+2. **Leitor abria no início.** **Feito** (ver abaixo).
 3. **PDF lento** (~20–50 s por livro com `pypdf`): avaliar `pypdfium2`.
 4. **Caminho relativo** ao registrar volume: corrigido no commit `6a7a9c9` (entra no próximo instalador).
+
+## Correções a partir do uso real (2026-11-18, commit `9ed6c76`)
+
+**Motor:** `102 passed, 1 warning in 33.06s`; `ruff`: `All checks passed!`. Novo teste: EPUB e TXT do mesmo livro viram um resultado com `copies`; um livro de mesmo título e texto muito maior continua separado.
+
+- **Duplicatas agrupadas:** mesmo título (sem acentos, maiúsculas e pontuação) e texto até 10% diferente. Nos livros reais, EPUB (672.941 caracteres) e PDFs (657.803) diferem 2,2% → um resultado só.
+- **Leitor vai ao trecho:** palavras buscadas marcadas no texto (sem diferenciar acentos/maiúsculas, só no começo de palavra, até 300 marcas), rolagem até a primeira, botões Anterior/Próxima e contador fixo no topo.
+
+**Navegador** (volume temporário com o mesmo livro em EPUB e TXT, viewport 1280×800): busca `katniss` → "1 resultado", "Também em: Texto"; leitor "1 de 2 ocorrências", primeira marca visível no meio da tela (390/800 px); "Próxima" → "2 de 2", também visível; barra fixa no topo.
+
+**Instalador** do commit `9ed6c76`: 7 dependências `ok`, 25.04 MiB. Inclui também a correção do caminho relativo (`6a7a9c9`). Ainda não instalado.
