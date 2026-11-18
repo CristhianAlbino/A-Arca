@@ -109,6 +109,7 @@ export function Knowledge() {
 
   const cleanHtml = useMemo(() => (article ? sanitize(article.html) : ""), [article]);
   const noZims = zims !== null && zims.length === 0;
+  const anyAvailable = zims?.some((z) => z.available) ?? false;
 
   return (
     <main className="kb">
@@ -142,9 +143,10 @@ export function Knowledge() {
             <li key={z.id}>
               <button
                 type="button"
-                className={`kb-zim${zimFilter === z.id ? " active" : ""}`}
+                className={`kb-zim${zimFilter === z.id ? " active" : ""}${z.available ? "" : " offline"}`}
                 onClick={() => setZimFilter((cur) => (cur === z.id ? "" : z.id))}
                 aria-pressed={zimFilter === z.id}
+                disabled={!z.available}
               >
                 <span className="kb-zim-title">{z.title}</span>
                 <span className="muted">
@@ -153,10 +155,17 @@ export function Knowledge() {
                     .join(" · ")}
                   {!z.has_fulltext && " · busca só por título"}
                 </span>
+                {!z.available && (
+                  <span className="kb-zim-offline">
+                    Disco {z.volume_label ? `“${z.volume_label}” ` : ""}desconectado
+                  </span>
+                )}
               </button>
-              <button type="button" className="link-button" onClick={() => open(z.id)}>
-                Página inicial
-              </button>
+              {z.available && (
+                <button type="button" className="link-button" onClick={() => open(z.id)}>
+                  Página inicial
+                </button>
+              )}
             </li>
           ))}
         </ul>
@@ -178,7 +187,7 @@ export function Knowledge() {
             }
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            disabled={!zims?.length}
+            disabled={!anyAvailable}
           />
           <button type="submit" className="btn btn-primary btn-small" disabled={!query.trim() || searching}>
             {searching ? "Buscando…" : "Buscar"}

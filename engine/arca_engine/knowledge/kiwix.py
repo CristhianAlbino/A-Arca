@@ -21,6 +21,9 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 from urllib.parse import unquote, urljoin
 
+from ..activity import now_iso
+from ..storage.volumes import parse_uri
+
 try:  # optional at import time so the rest of the engine runs without it
     from libzim.reader import Archive
     from libzim.search import Query, Searcher
@@ -67,7 +70,7 @@ class ZimInfo:
         }
 
 
-def _meta(archive: "Archive", key: str) -> str:
+def _meta(archive: Archive, key: str) -> str:
     try:
         return bytes(archive.get_metadata(key)).decode("utf-8", "replace").strip()
     except (KeyError, RuntimeError):
@@ -91,8 +94,9 @@ def find_zim_files(root: Path, max_depth: int = MAX_SCAN_DEPTH) -> list[Path]:
 class ZimLibrary:
     """The ZIMs on the connected volumes. Archives are opened lazily and cached."""
 
-    def __init__(self, get_volumes):
+    def __init__(self, get_volumes, db=None):
         self._get_volumes = get_volumes
+        self._db = db  # catalog of every ZIM ever seen (migration 3); optional for tests
         self._lock = threading.Lock()
         self._zims: dict[str, ZimInfo] = {}
         self._archives: dict[str, Archive] = {}
@@ -129,18 +133,76 @@ class ZimLibrary:
             self._zims = zims
             self._archives = {k: v for k, v in self._archives.items() if k in zims}
             self._scanned = True
+        self._remember(zims.values())
         return list(zims.values())
 
+    def _remember(self, found) -> None:
+        if self._db is None:
+            return
+        now = now_iso()
+        for z in found:
+            volume_id, _ = parse_uri(z.uri)
+            self._db.execute(
+                """
+                INSERT INTO zims (id, volume_id, uri, title, description, language, article_count,
+                                  size_bytes, has_fulltext, first_seen_at, last_seen_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    volume_id = excluded.volume_id, uri = excluded.uri, title = excluded.title,
+                    description = excluded.description, language = excluded.language,
+                    article_count = excluded.article_count, size_bytes = excluded.size_bytes,
+                    has_fulltext = excluded.has_fulltext, last_seen_at = excluded.last_seen_at
+                """,
+                (z.id, volume_id, z.uri, z.title, z.description, z.language, z.article_count,
+                 z.size_bytes, int(z.has_fulltext), now, now),
+            )
+
     def list(self, rescan: bool = False) -> list[ZimInfo]:
+        """ZIMs readable right now (on connected volumes)."""
         if rescan or not self._scanned:
             self.scan()
         return sorted(self._zims.values(), key=lambda z: z.title.lower())
 
-    def _archive(self, zim_id: str) -> tuple[ZimInfo, "Archive"]:
+    def catalog(self, rescan: bool = False) -> list[dict[str, Any]]:
+        """Every ZIM ever seen, with `available` and the volume name; connected ones first."""
+        available = {z.id: z for z in self.list(rescan=rescan)}
+        out = [{**z.to_dict(), "available": True, "volume_label": None} for z in available.values()]
+        if self._db is not None:
+            rows = self._db.execute(
+                "SELECT z.*, v.label AS volume_label FROM zims z JOIN volumes v ON v.id = z.volume_id"
+            ).fetchall()
+            labels = {r["id"]: r["volume_label"] for r in rows}
+            for item in out:
+                item["volume_label"] = labels.get(item["id"])
+            for r in rows:
+                if r["id"] in available:
+                    continue
+                out.append(
+                    {
+                        "id": r["id"], "uri": r["uri"], "title": r["title"],
+                        "description": r["description"], "language": r["language"],
+                        "article_count": r["article_count"], "size_bytes": r["size_bytes"],
+                        "has_fulltext": bool(r["has_fulltext"]), "available": False,
+                        "volume_label": r["volume_label"], "last_seen_at": r["last_seen_at"],
+                    }
+                )
+        return sorted(out, key=lambda z: (not z["available"], z["title"].lower()))
+
+    def _archive(self, zim_id: str) -> tuple[ZimInfo, Archive]:
         if not self._scanned:
             self.scan()
         info = self._zims.get(zim_id)
         if info is None:
+            row = None
+            if self._db is not None:
+                row = self._db.execute(
+                    "SELECT z.title, v.label FROM zims z JOIN volumes v ON v.id = z.volume_id WHERE z.id = ?",
+                    (zim_id,),
+                ).fetchone()
+            if row:
+                raise KnowledgeError(
+                    f"“{row['title']}” está no disco “{row['label']}”, que não está conectado.", status=404
+                )
             raise KnowledgeError("Enciclopédia não encontrada. O disco dela está conectado?", status=404)
         with self._lock:
             archive = self._archives.get(zim_id)
@@ -162,7 +224,7 @@ class ZimLibrary:
             results.extend(self._search_one(info, archive, query, limit))
         return results[: limit * max(1, len(targets))]
 
-    def _search_one(self, info: ZimInfo, archive: "Archive", query: str, limit: int) -> list[dict[str, Any]]:
+    def _search_one(self, info: ZimInfo, archive: Archive, query: str, limit: int) -> list[dict[str, Any]]:
         paths: list[str] = []
         if info.has_fulltext:
             search = Searcher(archive).search(Query().set_query(query))
@@ -244,7 +306,7 @@ def _resolve(base_path: str, href: str) -> str | None:
     return unquote(str(PurePosixPath(joined))) if joined else None
 
 
-def clean_article_html(raw: str, base_path: str, archive: "Archive | None" = None) -> str:
+def clean_article_html(raw: str, base_path: str, archive: Archive | None = None) -> str:
     body_match = _BODY.search(raw)
     body = body_match.group(1) if body_match else raw
     body = _REMOVE_BLOCKS.sub("", body)

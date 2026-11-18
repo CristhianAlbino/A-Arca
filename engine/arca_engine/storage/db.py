@@ -78,6 +78,22 @@ MIGRATIONS: list[str] = [
     );
     CREATE INDEX messages_conversation ON messages(conversation_id, id);
     """,
+    # 3 — Phase 3 catalog of ZIM encyclopedias seen on ARCA volumes
+    """
+    CREATE TABLE zims (
+        id             TEXT PRIMARY KEY,            -- the ZIM's own UUID
+        volume_id      TEXT NOT NULL REFERENCES volumes(id),
+        uri            TEXT NOT NULL,               -- vol://<uuid>/<relative path>
+        title          TEXT NOT NULL,
+        description    TEXT NOT NULL DEFAULT '',
+        language       TEXT NOT NULL DEFAULT '',
+        article_count  INTEGER NOT NULL,
+        size_bytes     INTEGER NOT NULL,
+        has_fulltext   INTEGER NOT NULL,
+        first_seen_at  TEXT NOT NULL,
+        last_seen_at   TEXT NOT NULL
+    );
+    """,
 ]
 
 

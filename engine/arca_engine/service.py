@@ -7,11 +7,10 @@ layer (api/app.py) a thin translation of these functions.
 from __future__ import annotations
 
 import re
+from collections.abc import Iterator
 from typing import Any
 
 from . import __version__
-from collections.abc import Iterator
-
 from .activity import log_activity, recent_activity
 from .ai.base import ProviderError, ProviderUnavailable
 from .ai.chat import ChatStore, chat_stream
@@ -249,7 +248,7 @@ def _knowledge(call):
 
 
 def list_zims(ctx: AppContext, rescan: bool = False) -> list[dict[str, Any]]:
-    return _knowledge(lambda: [z.to_dict() for z in ctx.zims.list(rescan=rescan)])
+    return _knowledge(lambda: ctx.zims.catalog(rescan=rescan))
 
 
 def search_knowledge(

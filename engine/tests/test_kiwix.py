@@ -4,10 +4,10 @@ import pytest
 
 pytest.importorskip("libzim")
 
-from arca_engine import service  # noqa: E402
-from arca_engine.context import AppContext  # noqa: E402
-from arca_engine.knowledge.kiwix import clean_article_html, find_zim_files  # noqa: E402
-from tests.fakes.make_zim import make_zim  # noqa: E402
+from arca_engine import service
+from arca_engine.context import AppContext
+from arca_engine.knowledge.kiwix import clean_article_html, find_zim_files
+from tests.fakes.make_zim import make_zim
 
 
 @pytest.fixture
@@ -49,10 +49,29 @@ def test_zim_listed_with_volume_uri(zim, ctx):
 def test_unplugged_volume_hides_zim(zim, ctx, volume):
     (volume / ".arca-volume.json").rename(volume / "marcador-guardado.json")
     ctx.volumes.scan()
-    assert service.list_zims(ctx, rescan=True) == []
+    listed = service.list_zims(ctx, rescan=True)
+    assert [(z["id"], z["available"], z["volume_label"]) for z in listed] == [(zim["id"], False, "SSD")]
+    assert service.search_knowledge(ctx, "ferver") == []
     with pytest.raises(service.ServiceError) as err:
         service.read_article(ctx, zim["id"], "Agua_potavel")
-    assert err.value.status == 404
+    assert err.value.status == 404 and "SSD" in str(err.value) and "não está conectado" in str(err.value)
+
+
+def test_catalog_survives_restart_and_reconnect(zim, ctx, app_paths, volume):
+    ctx.close()
+    marker = volume / ".arca-volume.json"
+    marker.rename(volume / "guardado.json")
+    again = AppContext.create(app_paths, token="t" * 43, include_drive_roots=False)
+    try:
+        listed = service.list_zims(again)
+        assert listed[0]["id"] == zim["id"] and listed[0]["available"] is False
+        (volume / "guardado.json").rename(marker)
+        again.volumes.scan()
+        listed = service.list_zims(again, rescan=True)
+        assert listed[0]["available"] is True and listed[0]["volume_label"] == "SSD"
+        assert service.read_article(again, zim["id"], "Radio_amador")["title"] == "Rádio amador"
+    finally:
+        again.close()
 
 
 def test_search_finds_article_with_snippet(zim, ctx):

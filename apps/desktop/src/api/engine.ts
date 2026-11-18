@@ -283,6 +283,9 @@ export interface ZimInfo {
   article_count: number;
   size_bytes: number;
   has_fulltext: boolean;
+  /** false when the volume holding it is not connected (kept in the catalog). */
+  available: boolean;
+  volume_label: string | null;
 }
 
 export interface SearchHit {

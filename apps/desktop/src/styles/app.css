@@ -1278,3 +1278,13 @@ button {
   color: var(--text-faint);
   font-size: 13px;
 }
+
+.kb-zim.offline {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.kb-zim-offline {
+  font-size: 12px;
+  color: var(--warn-text);
+}
