@@ -45,7 +45,13 @@ MAX_EPUB_PART_BYTES = 20 * 1024 * 1024  # one chapter; guards against zip bombs
 MAX_FILE_BYTES = 200 * 1024 * 1024
 MAX_TEXT_CHARS = 5_000_000  # keep the index reasonable for huge files
 MAX_SCAN_DEPTH = 8
-SKIP_DIRS = {"$recycle.bin", "system volume information", "node_modules", ".git", "__pycache__"}
+SKIP_DIRS = {
+    "$recycle.bin", "system volume information", "node_modules", ".git", "__pycache__",
+    # Private records, ingest staging, and catalog/backup metadata are not knowledge sources.
+    "90_pessoal", "00_catalogo", "01_entrada", "99_backups",
+}
+# Editorial source indexes are useful to organize downloads but are not original evidence.
+SKIP_FILE_SUFFIXES = ("__fontes_e_prioridades.txt",)
 
 _TAGS = re.compile(r"<[^>]+>")
 _DROP_BLOCKS = re.compile(r"<(script|style|noscript|template)\b[^>]*>.*?</\1\s*>", re.IGNORECASE | re.DOTALL)
@@ -164,7 +170,11 @@ def find_documents(root: Path, max_depth: int = MAX_SCAN_DEPTH) -> list[Path]:
             d for d in dirnames if not d.startswith(".") and d.lower() not in SKIP_DIRS and depth < max_depth
         ]
         for name in filenames:
-            if Path(name).suffix.lower() in FORMATS and not name.startswith("~$"):
+            if (
+                Path(name).suffix.lower() in FORMATS
+                and not name.startswith("~$")
+                and not name.lower().endswith(SKIP_FILE_SUFFIXES)
+            ):
                 found.append(Path(dirpath) / name)
     return sorted(found)
 
