@@ -100,3 +100,5 @@ Todos com título correto. **Ponto de atenção:** `pypdf` leva ~20–50 s por l
 - Busca `katniss` nos livros reais: **3 resultados** (antes 5); "Amanhecer na Colheita" uma vez só (EPUB), com "Também em: PDF, PDF".
 - Leitor da Trilogia: "1 de 300+ ocorrências", palavra atual destacada e a tela já posicionada nela.
 - **Defeito visto só no app:** ao rolar, a barra "Anterior/Próxima" ficava escondida atrás do cabeçalho da ARCA (os dois fixos no topo; no teste do navegador a página não rolava o suficiente para aparecer). Corrigido no commit seguinte: a barra fica logo abaixo do cabeçalho, medindo a altura real dele. **Ainda não testado no app instalado.**
+
+- Instalador gerado a partir do `6ea8f12` (inclui a correção da barra): 7 dependências `ok`, 25.05 MiB. Ainda não instalado.
