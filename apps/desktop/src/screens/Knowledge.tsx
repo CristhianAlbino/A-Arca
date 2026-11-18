@@ -37,7 +37,13 @@ function errorText(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
 }
 
-const FORMAT_LABEL: Record<LibraryHit["format"], string> = { txt: "Texto", md: "Markdown", html: "HTML", pdf: "PDF" };
+const FORMAT_LABEL: Record<LibraryHit["format"], string> = {
+  txt: "Texto",
+  md: "Markdown",
+  html: "HTML",
+  pdf: "PDF",
+  epub: "EPUB",
+};
 
 /** Snippet with [[word]] markers → text with <mark>, without injecting HTML. */
 function Highlighted({ text }: { text: string }) {
@@ -280,7 +286,7 @@ export function Knowledge() {
               {lib?.error && <span className="kb-zim-offline">{lib.error}</span>}
               {lib?.documents === 0 && (
                 <span className="muted">
-                  Textos, Markdown, HTML e PDFs dos volumes registrados. PDFs escaneados (só imagem) precisam de OCR,
+                  Textos, Markdown, HTML, PDFs e EPUBs dos volumes registrados. PDFs escaneados (só imagem) precisam de OCR,
                   que chega na Fase 6.
                 </span>
               )}

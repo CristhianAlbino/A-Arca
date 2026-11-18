@@ -1,6 +1,6 @@
 """The user's own library: text documents on ARCA volumes, searchable offline.
 
-Files (.txt, .md, .html, .pdf) are found on the connected volumes, their text is
+Files (.txt, .md, .html, .pdf, .epub) are found on the connected volumes, their text is
 extracted and stored in an SQLite FTS5 index (ADR 0003). Documents are referred to
 by vol:// URIs; an unplugged volume keeps its documents in the index, marked as
 unavailable, and they are never deleted because of it.
@@ -16,9 +16,12 @@ import os
 import re
 import sqlite3
 import threading
+import zipfile
 from collections.abc import Callable
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
+from urllib.parse import unquote
+from xml.etree import ElementTree as ET
 
 from ..activity import log_activity, now_iso
 from ..storage.db import connect
@@ -33,7 +36,11 @@ except ImportError:  # pragma: no cover
 
 log = logging.getLogger("arca_engine.library")
 
-FORMATS = {".txt": "txt", ".md": "md", ".markdown": "md", ".html": "html", ".htm": "html", ".pdf": "pdf"}
+FORMATS = {
+    ".txt": "txt", ".md": "md", ".markdown": "md", ".html": "html", ".htm": "html",
+    ".pdf": "pdf", ".epub": "epub",
+}
+MAX_EPUB_PART_BYTES = 20 * 1024 * 1024  # one chapter; guards against zip bombs
 MAX_FILE_BYTES = 200 * 1024 * 1024
 MAX_TEXT_CHARS = 5_000_000  # keep the index reasonable for huge files
 MAX_SCAN_DEPTH = 8
@@ -63,10 +70,59 @@ def _read_text_file(path: Path) -> str:
     return raw.decode("utf-8", "replace")
 
 
+def _html_to_text(markup: str) -> str:
+    markup = re.sub(r"<(br|/p|/div|/h[1-6]|/li|/tr)\b[^>]*>", "\n", markup, flags=re.IGNORECASE)
+    text = html.unescape(_TAGS.sub(" ", _DROP_BLOCKS.sub(" ", markup)))
+    text = re.sub(r"[ \t\r\f\v]+", " ", text)
+    return re.sub(r"\n\s*\n\s*(\n\s*)+", "\n\n", text).strip()
+
+
+def _extract_epub(path: Path) -> tuple[str, str]:
+    """(title, text) of an EPUB: chapters in reading order (OPF spine)."""
+    with zipfile.ZipFile(path) as zf:
+        container = ET.fromstring(zf.read("META-INF/container.xml"))
+        rootfile = container.find(".//{*}rootfile")
+        if rootfile is None:
+            raise ValueError("EPUB sem content.opf")
+        opf_path = rootfile.get("full-path", "")
+        opf = ET.fromstring(zf.read(opf_path))
+        base = PurePosixPath(opf_path).parent
+        title_el = opf.find(".//{*}metadata/{*}title")
+        title = (title_el.text or "").strip() if title_el is not None else ""
+        manifest = {
+            item.get("id"): item.get("href", "")
+            for item in opf.iterfind(".//{*}manifest/{*}item")
+            if "html" in (item.get("media-type") or "")
+        }
+        parts: list[str] = []
+        total = 0
+        for ref in opf.iterfind(".//{*}spine/{*}itemref"):
+            href = manifest.get(ref.get("idref"))
+            if not href:
+                continue
+            name = str(base / unquote(href)) if str(base) != "." else unquote(href)
+            try:
+                info = zf.getinfo(name)
+            except KeyError:
+                continue
+            if info.file_size > MAX_EPUB_PART_BYTES:
+                continue
+            text = _html_to_text(zf.read(info).decode("utf-8", "replace"))
+            if text:
+                parts.append(text)
+                total += len(text)
+            if total > MAX_TEXT_CHARS:
+                break
+    return title, "\n\n".join(parts)
+
+
 def extract(path: Path) -> tuple[str, str, str]:
     """(format, title, text) for a supported file."""
     fmt = FORMATS[path.suffix.lower()]
     title = path.stem.replace("_", " ").strip()
+    if fmt == "epub":
+        epub_title, text = _extract_epub(path)
+        return fmt, epub_title or title, text
     if fmt == "pdf":
         if not PDF_AVAILABLE:
             raise LibraryError("Leitor de PDF (pypdf) não instalado no motor.", status=503)

@@ -333,7 +333,7 @@ export interface LibraryHit {
   id: number;
   uri: string;
   title: string;
-  format: "txt" | "md" | "html" | "pdf";
+  format: "txt" | "md" | "html" | "pdf" | "epub";
   size_bytes: number;
   volume_label: string;
   available: boolean;

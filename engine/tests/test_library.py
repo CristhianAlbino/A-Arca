@@ -151,3 +151,28 @@ def test_background_indexing_and_http(app_paths, volume):
             assert c.get("/library/search", params={"q": "x" * 301}, headers=auth).status_code == 400
     finally:
         ctx.close()
+
+
+def test_epub_in_reading_order(tmp_path):
+    from tests.fakes.make_epub import make_epub
+
+    book = make_epub(
+        tmp_path / "livro.epub",
+        "A Colheita",
+        [("Capítulo 1", "Era manhã no Distrito 12."), ("Capítulo 2", "A colheita começou ao meio-dia.")],
+    )
+    fmt, title, text = extract(book)
+    assert (fmt, title) == ("epub", "A Colheita")
+    assert text.index("Distrito 12") < text.index("meio-dia")  # spine order, not zip order
+    assert "Capítulo 1" in text and "<" not in text and "color" not in text
+
+
+def test_epub_indexed_and_broken_epub_does_not_stop(ctx, volume):
+    from tests.fakes.make_epub import make_epub
+
+    make_epub(volume / "05_LIVROS" / "colheita.epub", "A Colheita", [("Um", "Distrito doze, manhã cinzenta.")])
+    (volume / "05_LIVROS" / "ruim.epub").write_bytes(b"PK\x03\x04 nao e zip de verdade")
+    summary = index(ctx)
+    assert summary["added"] == 6 and summary["failed"] == 1
+    hit = service.search_library(ctx, "distrito cinzenta")[0]
+    assert (hit["title"], hit["format"]) == ("A Colheita", "epub")
