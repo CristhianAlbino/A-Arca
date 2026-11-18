@@ -144,6 +144,22 @@ def create_app(ctx: AppContext) -> FastAPI:
     def knowledge_article(zim: str, path: str | None = None) -> dict[str, Any]:
         return service.read_article(ctx, zim, path)
 
+    @app.get("/library/status")
+    def library_status() -> dict[str, Any]:
+        return service.library_status(ctx)
+
+    @app.post("/library/index", status_code=202)
+    def index_library() -> dict[str, Any]:
+        return service.index_library(ctx)
+
+    @app.get("/library/search")
+    def library_search(q: str, limit: int = 20) -> list[dict[str, Any]]:
+        return service.search_library(ctx, q, limit=limit)
+
+    @app.get("/library/docs/{doc_id}")
+    def library_doc(doc_id: int) -> dict[str, Any]:
+        return service.read_document(ctx, doc_id)
+
     @app.get("/ai/conversations")
     def conversations(limit: int = 100) -> list[dict[str, Any]]:
         return service.list_conversations(ctx, limit=limit)

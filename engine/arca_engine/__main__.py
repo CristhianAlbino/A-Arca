@@ -43,7 +43,7 @@ def _exit_when_parent_closes_stdin() -> None:
     threading.Thread(target=watch, name="parent-watch", daemon=True).start()
 
 
-REQUIRED_MODULES = ["fastapi", "uvicorn", "psutil", "libzim.reader", "libzim.search", "libzim.suggestion"]
+REQUIRED_MODULES = ["fastapi", "uvicorn", "psutil", "libzim.reader", "libzim.search", "libzim.suggestion", "pypdf"]
 
 
 def check_dependencies() -> int:

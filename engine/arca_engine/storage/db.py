@@ -94,6 +94,27 @@ MIGRATIONS: list[str] = [
         last_seen_at   TEXT NOT NULL
     );
     """,
+    # 4 — Phase 3 own library: documents on ARCA volumes with full-text search
+    """
+    CREATE TABLE docs (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        volume_id   TEXT NOT NULL REFERENCES volumes(id),
+        uri         TEXT NOT NULL UNIQUE,           -- vol://<uuid>/<relative path>
+        title       TEXT NOT NULL,
+        format      TEXT NOT NULL,                  -- 'txt' | 'md' | 'html' | 'pdf'
+        size_bytes  INTEGER NOT NULL,
+        mtime_ns    INTEGER NOT NULL,
+        chars       INTEGER NOT NULL,
+        status      TEXT NOT NULL DEFAULT 'ok' CHECK (status IN ('ok','sem-texto','erro')),
+        indexed_at  TEXT NOT NULL
+    );
+    CREATE INDEX docs_volume ON docs(volume_id);
+
+    -- rowid = docs.id. unicode61 without diacritics: "agua" finds "água".
+    CREATE VIRTUAL TABLE docs_fts USING fts5(
+        title, body, tokenize = 'unicode61 remove_diacritics 2'
+    );
+    """,
 ]
 
 

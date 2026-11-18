@@ -262,3 +262,31 @@ def search_knowledge(
 
 def read_article(ctx: AppContext, zim_id: str, path: str | None = None) -> dict[str, Any]:
     return _knowledge(lambda: ctx.zims.article(zim_id, path))
+
+
+# --- Knowledge: own library (Phase 3B) ---------------------------------------------
+def _library(call):
+    from .knowledge.library import LibraryError
+
+    try:
+        return call()
+    except LibraryError as exc:
+        raise ServiceError(str(exc), status=exc.status) from exc
+
+
+def library_status(ctx: AppContext) -> dict[str, Any]:
+    return ctx.library.status()
+
+
+def index_library(ctx: AppContext) -> dict[str, Any]:
+    return ctx.library.start_indexing()
+
+
+def search_library(ctx: AppContext, query: str, limit: int = 20) -> list[dict[str, Any]]:
+    if len(query) > 300:
+        raise ServiceError("Busca longa demais (máximo de 300 caracteres).")
+    return _library(lambda: ctx.library.search(query, limit=max(1, min(limit, 50))))
+
+
+def read_document(ctx: AppContext, doc_id: int) -> dict[str, Any]:
+    return _library(lambda: ctx.library.read(doc_id))
