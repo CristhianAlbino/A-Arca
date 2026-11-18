@@ -58,6 +58,7 @@ def test_fts_query_is_safe():
 
 
 def test_extracts_titles_and_text(volume):
+    assert extract(volume / "05_LIVROS" / "agua.txt")[1] == "Purificação de água"
     assert extract(volume / "05_LIVROS" / "radio.md")[1] == "Rádio de emergência"
     fmt, title, text = extract(volume / "05_LIVROS" / "fogo.html")
     assert (fmt, title) == ("html", "Fogueira segura")
@@ -72,7 +73,7 @@ def test_index_and_search_without_accents(ctx):
     assert summary == {"added": 4, "updated": 0, "unchanged": 0, "removed": 0, "failed": 0}
     assert ctx.library.status()["documents"] == 4
     # "agua" (no accent) finds "água" in the txt and in the PDF
-    assert set(titles(service.search_library(ctx, "agua"))) == {"agua", "Manual de primeiros socorros"}
+    assert set(titles(service.search_library(ctx, "agua"))) == {"Purificação de água", "Manual de primeiros socorros"}
     hit = service.search_library(ctx, "queimadura")[0]
     assert hit["format"] == "pdf" and hit["available"] is True and hit["volume_label"] == "SSD"
     assert "[[queimadura]]" in hit["snippet"]
@@ -92,7 +93,7 @@ def test_reindex_skips_unchanged_and_tracks_changes(ctx, volume):
     (volume / "05_LIVROS" / "radio.md").unlink()
     summary = index(ctx)
     assert summary["updated"] == 1 and summary["removed"] == 1 and summary["unchanged"] == 2
-    assert titles(service.search_library(ctx, "chuva")) == ["agua"]
+    assert titles(service.search_library(ctx, "chuva")) == ["agua"]  # no title line any more
     assert service.search_library(ctx, "ferva") == []
     assert service.search_library(ctx, "frequencia") == []
 

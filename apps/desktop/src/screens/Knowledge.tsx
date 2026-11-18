@@ -1,7 +1,16 @@
-// Phase 3: offline encyclopedias (Kiwix ZIM files on ARCA volumes).
+// Phase 3: offline encyclopedias (Kiwix ZIM files) and the user's own library, on ARCA volumes.
 import { useCallback, useEffect, useMemo, useState, type FormEvent, type MouseEvent } from "react";
 
-import { knowledge, type Article, type SearchHit, type ZimInfo } from "../api/engine";
+import {
+  knowledge,
+  library,
+  type Article,
+  type LibraryDoc,
+  type LibraryHit,
+  type LibraryStatus,
+  type SearchHit,
+  type ZimInfo,
+} from "../api/engine";
 import { RefreshIcon } from "../components/Icons";
 import { size } from "../format";
 
@@ -28,6 +37,14 @@ function errorText(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
 }
 
+const FORMAT_LABEL: Record<LibraryHit["format"], string> = { txt: "Texto", md: "Markdown", html: "HTML", pdf: "PDF" };
+
+/** Snippet with [[word]] markers → text with <mark>, without injecting HTML. */
+function Highlighted({ text }: { text: string }) {
+  const parts = text.split(/\[\[|\]\]/);
+  return <>{parts.map((p, i) => (i % 2 === 1 ? <mark key={i}>{p}</mark> : p))}</>;
+}
+
 export function Knowledge() {
   const [zims, setZims] = useState<ZimInfo[] | null>(null);
   const [scanning, setScanning] = useState(false);
@@ -39,6 +56,45 @@ export function Knowledge() {
   const [article, setArticle] = useState<Article | null>(null);
   const [history, setHistory] = useState<Article[]>([]);
   const [external, setExternal] = useState<string | null>(null);
+  const [lib, setLib] = useState<LibraryStatus | null>(null);
+  const [docHits, setDocHits] = useState<LibraryHit[] | null>(null);
+  const [doc, setDoc] = useState<LibraryDoc | null>(null);
+
+  const loadLibrary = useCallback(async () => {
+    try {
+      setLib(await library.status());
+    } catch (err) {
+      setError(errorText(err));
+    }
+  }, []);
+
+  // While indexing runs in the engine, refresh the progress every second.
+  useEffect(() => {
+    loadLibrary();
+  }, [loadLibrary]);
+  useEffect(() => {
+    if (!lib?.running) return;
+    const timer = window.setInterval(loadLibrary, 1000);
+    return () => window.clearInterval(timer);
+  }, [lib?.running, loadLibrary]);
+
+  async function indexLibrary() {
+    try {
+      setLib({ ...(lib ?? { documents: 0, searchable: 0 }), ...(await library.index()) } as LibraryStatus);
+    } catch (err) {
+      setError(errorText(err));
+    }
+  }
+
+  async function openDoc(id: number) {
+    try {
+      setDoc(await library.doc(id));
+      setArticle(null);
+      setError(null);
+    } catch (err) {
+      setError(errorText(err));
+    }
+  }
 
   const loadZims = useCallback(async (rescan: boolean) => {
     setScanning(true);
@@ -61,9 +117,17 @@ export function Knowledge() {
     if (!query.trim()) return;
     setSearching(true);
     setArticle(null);
+    setDoc(null);
     setHistory([]);
     try {
-      setHits(await knowledge.search(query.trim(), zimFilter || null));
+      const q = query.trim();
+      // A chosen encyclopedia narrows the search to it; otherwise search everything.
+      const [z, d] = await Promise.all([
+        anyAvailable ? knowledge.search(q, zimFilter || null) : Promise.resolve([] as SearchHit[]),
+        !zimFilter && (lib?.searchable ?? 0) > 0 ? library.search(q) : Promise.resolve([] as LibraryHit[]),
+      ]);
+      setHits(z);
+      setDocHits(zimFilter ? null : d);
       setError(null);
     } catch (err) {
       setError(errorText(err));
@@ -78,6 +142,7 @@ export function Knowledge() {
       if (keepHistory && article) setHistory((h) => [...h, article]);
       else if (!keepHistory) setHistory([]);
       setArticle(next);
+      setDoc(null);
       setExternal(null);
       setError(null);
       document.querySelector(".kb-reader")?.scrollTo?.({ top: 0 });
@@ -110,6 +175,8 @@ export function Knowledge() {
   const cleanHtml = useMemo(() => (article ? sanitize(article.html) : ""), [article]);
   const noZims = zims !== null && zims.length === 0;
   const anyAvailable = zims?.some((z) => z.available) ?? false;
+  const canSearch = anyAvailable || (lib?.searchable ?? 0) > 0;
+  const totalHits = (hits?.length ?? 0) + (docHits?.length ?? 0);
 
   return (
     <main className="kb">
@@ -169,6 +236,57 @@ export function Knowledge() {
             </li>
           ))}
         </ul>
+
+        <div className="kb-side-head kb-lib-head">
+          <h2>Biblioteca</h2>
+          <button
+            type="button"
+            className="btn btn-outline btn-small"
+            onClick={indexLibrary}
+            disabled={lib?.running}
+            aria-label="Indexar documentos dos volumes"
+          >
+            <RefreshIcon size={16} /> {lib?.running ? "Indexando…" : "Indexar"}
+          </button>
+        </div>
+        <div className="kb-lib" aria-live="polite">
+          {lib?.running ? (
+            <>
+              <span>
+                {lib.done ?? 0} de {lib.total || "?"} arquivos
+              </span>
+              {lib.current && <span className="muted kb-lib-current">{lib.current}</span>}
+              {lib.total ? (
+                <div className="meter-bar">
+                  <div
+                    className="meter-fill"
+                    style={{ width: `${((lib.done ?? 0) / lib.total) * 100}%`, background: "var(--accent)" }}
+                  />
+                </div>
+              ) : null}
+            </>
+          ) : (
+            <>
+              <span>
+                {(lib?.documents ?? 0).toLocaleString("pt-BR")} documento{lib?.documents === 1 ? "" : "s"}
+              </span>
+              {lib?.last_result && (
+                <span className="muted">
+                  Última indexação: {lib.last_result.added} novos, {lib.last_result.updated} atualizados,{" "}
+                  {lib.last_result.removed} removidos
+                  {lib.last_result.failed > 0 && `, ${lib.last_result.failed} com erro`}
+                </span>
+              )}
+              {lib?.error && <span className="kb-zim-offline">{lib.error}</span>}
+              {lib?.documents === 0 && (
+                <span className="muted">
+                  Textos, Markdown, HTML e PDFs dos volumes registrados. PDFs escaneados (só imagem) precisam de OCR,
+                  que chega na Fase 6.
+                </span>
+              )}
+            </>
+          )}
+        </div>
       </aside>
 
       <section className="kb-main" aria-label="Busca e leitura">
@@ -183,11 +301,11 @@ export function Knowledge() {
             placeholder={
               zimFilter
                 ? `Buscar em ${zims?.find((z) => z.id === zimFilter)?.title ?? "enciclopédia"}`
-                : "Buscar em todas as enciclopédias"
+                : "Buscar nas enciclopédias e na biblioteca"
             }
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            disabled={!anyAvailable}
+            disabled={!canSearch}
           />
           <button type="submit" className="btn btn-primary btn-small" disabled={!query.trim() || searching}>
             {searching ? "Buscando…" : "Buscar"}
@@ -200,7 +318,30 @@ export function Knowledge() {
           </div>
         )}
 
-        {article ? (
+        {doc ? (
+          <article className="kb-reader">
+            <div className="kb-reader-head">
+              <button type="button" className="link-button" onClick={() => setDoc(null)}>
+                Resultados da busca
+              </button>
+              <span className="muted">
+                {FORMAT_LABEL[doc.format]} · {doc.volume_label}
+                {!doc.available && " (disco desconectado; texto guardado no índice)"}
+              </span>
+            </div>
+            <h1 className="kb-doc-title">{doc.title}</h1>
+            <p className="muted kb-doc-uri">{doc.uri}</p>
+            {doc.status !== "ok" ? (
+              <p className="kb-external">
+                {doc.status === "sem-texto"
+                  ? "Este arquivo não tem texto que dê para ler (provavelmente um PDF escaneado; OCR chega na Fase 6)."
+                  : "Não foi possível ler este arquivo (danificado, protegido por senha ou grande demais)."}
+              </p>
+            ) : (
+              <div className="kb-doc-text">{doc.text}</div>
+            )}
+          </article>
+        ) : article ? (
           <article className="kb-reader">
             <div className="kb-reader-head">
               {history.length > 0 && (
@@ -225,8 +366,34 @@ export function Knowledge() {
         ) : hits ? (
           <div className="kb-results">
             <p className="muted">
-              {hits.length === 0 ? "Nada encontrado." : `${hits.length} resultado${hits.length > 1 ? "s" : ""}`}
+              {totalHits === 0 ? "Nada encontrado." : `${totalHits} resultado${totalHits > 1 ? "s" : ""}`}
             </p>
+            {docHits && docHits.length > 0 && (
+              <>
+                <h2 className="kb-results-title">Biblioteca</h2>
+                <ul>
+                  {docHits.map((d) => (
+                    <li key={d.id}>
+                      <button type="button" className="kb-hit" onClick={() => openDoc(d.id)}>
+                        <span className="kb-hit-title">{d.title}</span>
+                        <span className="muted kb-hit-zim">
+                          {FORMAT_LABEL[d.format]} · {d.volume_label}
+                          {!d.available && " · disco desconectado"}
+                        </span>
+                        {d.snippet && (
+                          <span className="kb-hit-snippet">
+                            <Highlighted text={d.snippet} />
+                          </span>
+                        )}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+            {hits.length > 0 && docHits && docHits.length > 0 && (
+              <h2 className="kb-results-title">Enciclopédias</h2>
+            )}
             <ul>
               {hits.map((h) => (
                 <li key={`${h.zim_id}/${h.path}`}>
@@ -240,11 +407,11 @@ export function Knowledge() {
             </ul>
           </div>
         ) : (
-          !noZims && (
+          (!noZims || (lib?.searchable ?? 0) > 0) && (
             <div className="kb-welcome">
               <h1>Conhecimento</h1>
               <p className="muted">
-                Busque nas enciclopédias guardadas neste computador e nos seus discos. Tudo funciona sem internet.
+                Busque nas enciclopédias e nos seus documentos guardados neste computador e nos seus discos. Tudo funciona sem internet.
               </p>
             </div>
           )

@@ -1288,3 +1288,56 @@ button {
   font-size: 12px;
   color: var(--warn-text);
 }
+
+/* ---------- Own library (Phase 3B) ---------- */
+.kb-lib-head {
+  margin-top: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.kb-lib {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.kb-lib-current {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kb-results-title {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin: 8px 0 4px;
+}
+
+.kb-hit mark {
+  background: var(--warn-bg);
+  color: var(--warn-text);
+  border-radius: 3px;
+  padding: 0 2px;
+}
+
+.kb-doc-title {
+  font-size: 26px;
+  margin: 4px 0 0;
+}
+
+.kb-doc-uri {
+  margin: 0;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.kb-doc-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.7;
+  font-size: 15px;
+}

@@ -317,3 +317,38 @@ export const knowledge = {
     return api<Article>(`/knowledge/article?${params}`);
   },
 };
+
+export interface LibraryStatus {
+  documents: number;
+  searchable: number;
+  running: boolean;
+  done?: number;
+  total?: number;
+  current?: string | null;
+  last_result?: { added: number; updated: number; unchanged: number; removed: number; failed: number };
+  error?: string;
+}
+
+export interface LibraryHit {
+  id: number;
+  uri: string;
+  title: string;
+  format: "txt" | "md" | "html" | "pdf";
+  size_bytes: number;
+  volume_label: string;
+  available: boolean;
+  /** Matched words are wrapped in [[ ]]. */
+  snippet: string;
+}
+
+export interface LibraryDoc extends Omit<LibraryHit, "snippet"> {
+  status: "ok" | "sem-texto" | "erro";
+  text: string;
+}
+
+export const library = {
+  status: () => api<LibraryStatus>("/library/status"),
+  index: () => api<LibraryStatus>("/library/index", { method: "POST" }),
+  search: (q: string) => api<LibraryHit[]>(`/library/search?${new URLSearchParams({ q })}`),
+  doc: (id: number) => api<LibraryDoc>(`/library/docs/${id}`),
+};

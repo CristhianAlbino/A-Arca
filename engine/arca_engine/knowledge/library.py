@@ -91,6 +91,10 @@ def extract(path: Path) -> tuple[str, str, str]:
         m = _MD_HEADING.search(text)
         if m:
             title = m.group(1).strip()
+    else:  # txt: a short first line followed by a blank line reads as a title
+        lines = text.lstrip().splitlines()
+        if len(lines) > 1 and 0 < len(lines[0].strip()) <= 100 and not lines[1].strip():
+            title = lines[0].strip()
     return fmt, title, text
 
 
