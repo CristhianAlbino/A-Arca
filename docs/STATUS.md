@@ -41,7 +41,7 @@
 ## Revisões paralelas em andamento (18/11/2026)
 
 - **CI do GitHub Actions:** 33 execuções falharam; jobs da última execução não iniciaram passos. Diagnóstico e próximos passos na [issue #1](https://github.com/CristhianAlbino/A-Arca/issues/1). Causa não confirmada; não alterar YAML sem evidência.
-- **RAG 3C — proposta em revisão:** branch `fix/rag-filtrar-fontes-fracas-chatgpt` (derivada de `feat/fase-3-biblioteca`) descarta trechos com evidência fraca antes de enviá-los ao modelo e acrescenta testes de regressão. **Ainda não integrada e sem suíte executada no notebook.** Ver [diário](sessoes/2026-11-18-chatgpt-rag-relevancia.md).
+- **RAG 3C — proposta em revisão:** [PR #2](https://github.com/CristhianAlbino/A-Arca/pull/2) em draft, branch `fix/rag-filtrar-fontes-fracas-chatgpt` (derivada de `feat/fase-3-biblioteca`) descarta trechos com evidência fraca antes de enviá-los ao modelo e acrescenta testes de regressão. **Ainda não integrada e sem suíte executada no notebook.** Ver [diário](sessoes/2026-11-18-chatgpt-rag-relevancia.md).
 
 ## Pendências da Fase 1
 
