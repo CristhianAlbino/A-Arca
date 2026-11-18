@@ -43,13 +43,37 @@ def _exit_when_parent_closes_stdin() -> None:
     threading.Thread(target=watch, name="parent-watch", daemon=True).start()
 
 
+REQUIRED_MODULES = ["fastapi", "uvicorn", "psutil", "libzim.reader", "libzim.search", "libzim.suggestion"]
+
+
+def check_dependencies() -> int:
+    """Import every runtime dependency; print one line each. Non-zero exit if any is missing."""
+    import importlib
+
+    missing = 0
+    for name in REQUIRED_MODULES:
+        try:
+            importlib.import_module(name)
+            print(f"ok       {name}")
+        except ImportError as exc:
+            missing += 1
+            print(f"FALTANDO {name}: {exc}")
+    return 1 if missing else 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="arca-engine", description="Motor local da ARCA")
     parser.add_argument("--port", type=int, default=0, help="0 = porta livre aleatória")
     parser.add_argument("--token", default=None, help="Somente para desenvolvimento no navegador")
     parser.add_argument("--sidecar", action="store_true", help="Encerrar quando o app fechar")
     parser.add_argument("--version", action="version", version=__version__)
+    parser.add_argument(
+        "--check-deps", action="store_true", help="Conferir as bibliotecas do motor e sair (usado no build)"
+    )
     args = parser.parse_args(argv)
+
+    if args.check_deps:
+        return check_dependencies()
 
     paths = resolve_app_paths().ensure()
     setup_logging(paths.logs_dir)
