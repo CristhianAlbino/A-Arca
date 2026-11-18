@@ -150,3 +150,11 @@ def test_http_routes(app_paths, volume):
             assert c.get("/knowledge/search", params={"q": "x" * 301}, headers=auth).status_code == 400
     finally:
         ctx.close()
+
+
+def test_unplug_seen_without_rescan(zim, ctx, volume):
+    (volume / ".arca-volume.json").rename(volume / "guardado.json")
+    ctx.volumes.scan()  # what the engine does when the HOME screen refreshes
+    listed = service.list_zims(ctx)  # no rescan of ZIM files
+    assert listed[0]["available"] is False
+    assert service.search_knowledge(ctx, "ferver") == []

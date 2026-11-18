@@ -161,7 +161,12 @@ class ZimLibrary:
         """ZIMs readable right now (on connected volumes)."""
         if rescan or not self._scanned:
             self.scan()
-        return sorted(self._zims.values(), key=lambda z: z.title.lower())
+        # A disk may have been unplugged since the last scan: check before answering.
+        mounted = {v["id"] for v in self._get_volumes().status() if v["available"]}
+        current = [
+            z for z in self._zims.values() if parse_uri(z.uri)[0] in mounted and z.path.exists()
+        ]
+        return sorted(current, key=lambda z: z.title.lower())
 
     def catalog(self, rescan: bool = False) -> list[dict[str, Any]]:
         """Every ZIM ever seen, with `available` and the volume name; connected ones first."""
@@ -191,7 +196,7 @@ class ZimLibrary:
     def _archive(self, zim_id: str) -> tuple[ZimInfo, Archive]:
         if not self._scanned:
             self.scan()
-        info = self._zims.get(zim_id)
+        info = next((z for z in self.list() if z.id == zim_id), None)
         if info is None:
             row = None
             if self._db is not None:
