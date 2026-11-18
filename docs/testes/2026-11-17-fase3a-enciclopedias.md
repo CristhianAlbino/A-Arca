@@ -73,7 +73,9 @@ O motor empacotado, com um volume temporário contendo o ZIM de teste, listou `E
 - O Tauri baixou as ferramentas do NSIS do GitHub na primeira vez (só no build, nunca no app).
 - O motor junto do app (`target\release\engine`) tem `zim-9.dll` e `libzim.cp312-win_amd64.pyd`; `--check-deps` passou.
 - `target\release\arca.exe` (versão final, sem instalar): iniciou `arca-engine.exe` como processo filho, escutando só em `127.0.0.1`; fechar a janela encerrou os dois.
-- O instalador `.exe` **não foi executado** (instalar no notebook fica a critério do usuário).
+- Instalação silenciosa (`ARCA_0.1.0_x64-setup.exe /S`, a pedido do usuário): saída 0, entrada "ARCA 0.1.0" em Programas instalados, atalho no menu Iniciar, `engine\arca-engine.exe --check-deps` ok; o app instalado abriu, subiu o motor em `127.0.0.1:51097` e fechou sem deixar processo.
+- **Mas** a instalação foi feita de dentro do app Claude Desktop, que é um pacote MSIX: o Windows redirecionou tudo para `AppData\Local\Packages\Claude_…\LocalCache\Local\ARCA` (área virtual que só o Claude enxerga). Para o usuário, nada foi instalado. Essa cópia foi desinstalada (`uninstall.exe /S`, saída 0) e o instalador foi aberto pelo `explorer.exe`, fora da área virtual, para o usuário concluir.
+- Lição para outras sessões de IA: não instalar programas a partir do Claude Desktop; abrir o instalador pelo Explorer ou pedir ao usuário.
 
 ## Não testado
 
