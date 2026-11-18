@@ -36,3 +36,12 @@ Resposta em português, 3 frases, coerente: ferver até a fervura completa, deix
 - Com a RAM quase cheia, o **primeiro** carregamento do modelo demorou bem mais que a geração. O upgrade para 24 GB deve resolver; enquanto isso, fechar programas antes de usar a IA.
 - A resposta usa algumas palavras de Portugal ("arrefecer"); avaliar um prompt de sistema pedindo português do Brasil.
 - Ainda não testado no app instalado com a correção (instalador sendo gerado).
+
+## 4. App instalado com a correção (instalador do `4144642`)
+
+- `arca.exe` de 00:52; um app e um motor; `qwen3.5:4b` carregado 100% na GPU; ~600 MB de RAM livre.
+- Aba IA: modelo "carregado na memória"; a conversa do teste anterior aparece no histórico ("Hoje").
+- A mensagem enviada acabou sendo o conteúdo da área de transferência do usuário (`ollama pull qwen3.5:4b`), por causa da automação de tela. A resposta completa chegou em **menos de 5 s**, em português, com Markdown renderizado (negrito, lista, dois blocos de código com "Copiar").
+- Conteúdo da resposta: dizia que o modelo "pode não existir oficialmente ainda" — erro factual do próprio modelo (não conhece versões posteriores ao seu treino). Reforça a regra do projeto: respostas de saúde/segurança só com fontes (etapa 3C / Fase 4).
+
+**Resultado:** a correção do `think` resolve a espera no app instalado. → IA local **funcionando** no notebook.

@@ -33,7 +33,7 @@
 2. **No notebook:** a ARCA está instalada (2026-11-17, instalador de `feat/fase-3-biblioteca`, commit `c579040`) e abre com Início e Conhecimento (enciclopédias e biblioteca) funcionando. Falta abrir com Wi-Fi desligado e testar um pendrive.
 3. Fazer merge da Fase 1 → release `v0.1.0`.
 4. Depois do merge da Fase 1: revisar e mergear `feat/fase-2-ai` (https://github.com/CristhianAlbino/A-Arca/pull/new/feat/fase-2-ai).
-5. IA com modelo real: **funciona** (2026-11-18, Ollama 0.40.16 + `qwen3.5:4b`, 51 tokens/s, primeira palavra em 1 s — [relatório](testes/2026-11-18-ia-real-qwen.md)). Falta conferir no app instalado com a correção do `think` e testar `qwen3.5:9b` depois do upgrade para 24 GB.
+5. IA com modelo real: **funciona** (2026-11-18, Ollama 0.40.16 + `qwen3.5:4b`, 51 tokens/s, primeira palavra em 1 s — [relatório](testes/2026-11-18-ia-real-qwen.md)). Conferido também no app instalado (resposta em menos de 5 s). Falta testar `qwen3.5:9b` depois do upgrade para 24 GB.
 6. Testar o download de um modelo pelo painel "Gerenciar modelos" (modo online) — o primeiro foi baixado pelo terminal.
 7. Colocar um ZIM real (ex.: Wikipédia PT `nopic`) e alguns PDFs num volume e testar a tela Conhecimento (Procurar e Indexar).
 8. Próximo a adiantar: perfis da 2B (depois de medir com Ollama real), 2C (IA online opcional), 3C (busca semântica e RAG, depende da IA local).
