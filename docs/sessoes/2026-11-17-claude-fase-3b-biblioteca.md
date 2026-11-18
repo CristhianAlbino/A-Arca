@@ -20,3 +20,13 @@
 
 - O texto extraído fica no índice FTS5 (não em arquivos à parte): permite ler o documento mesmo com o disco desconectado. Custo: o banco cresce com o acervo; o limite por arquivo é 5 milhões de caracteres.
 - A indexação não segue a ordem "importar → catalogar" da Fase 6: só lê o que já está nos volumes, sem copiar nem mover nada.
+
+## Acervo — lote 1 (2026-11-18)
+
+Aprovado pelo usuário: Bíblia Livre (EPUB, ebible.org), Wikivoyage PT, Wikilivros PT, Wikipédia Medicina PT, Wikcionário PT e Wikipédia PT completa (todos `nopic`, download.kiwix.org) — ~7,1 GB. Script: `scripts/acervo/baixar_lote1.sh` (baixa numa pasta temporária, confere o SHA-256 publicado pelo Kiwix, só então move para `G:\Meu Drive\ARCA`; nunca sobrescreve). Registro em `catalog/fontes-publicas.csv`.
+
+- Já no Drive e conferidos: Bíblia Livre (`12_ENTRETENIMENTO/01_Biblia`), Wikivoyage e Wikilivros (`02_ENCICLOPEDIAS`).
+- App instalado: Wikilivros (16.667 itens) e Wikivoyage (4.610) listados; Bíblia indexada na Biblioteca (6 documentos). Busca "pastor" → 42 resultados (Bíblia, Trilogia e Wikilivros).
+- A primeira busca no app instalado logo após o Wikilivros chegar ao Drive não trouxe resultados das enciclopédias; a mesma busca minutos depois trouxe 40. Provável causa: o Google Drive ainda baixando o arquivo da nuvem (modo streaming). Recomendação: marcar `02_ENCICLOPEDIAS` como "Disponível off-line".
+- Incidentes do script: (1) o `sha256sum` do Git Bash põe `\` antes do hash em caminhos Windows — comparação falhou com hashes iguais; corrigido lendo pela entrada padrão. (2) `TaskStop` não encerrou o script antigo, que continuou em paralelo; encerrado à mão.
+- Velocidade varia por espelho (≈140 KB/s em um deles). Medicina, Wikcionário e a Wikipédia completa ainda baixando; entrar no catálogo quando conferidos.
