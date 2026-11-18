@@ -62,3 +62,19 @@ def test_budget():
     assert not refused.ok and "menor" in refused.message
     assert check_fit(2 * GB, vram_free_bytes=None, ram_free_bytes=8 * GB).mode == "cpu"
     assert not check_fit(9 * GB, vram_free_bytes=None, ram_free_bytes=8 * GB).ok
+
+
+def test_chat_asks_for_answer_without_hidden_thinking(fake):
+    ollama = OllamaProvider(guard(), fake.start())
+    list(ollama.chat("teste-pequeno:3b", [ChatMessage("user", "oi")]))
+    body = next(b for method, path, b in fake.requests if path == "/api/chat")
+    assert body["think"] is False
+
+
+def test_chat_retries_without_think_when_refused(fake):
+    fake.reject_think = True
+    ollama = OllamaProvider(guard(), fake.start())
+    chunks = list(ollama.chat("teste-pequeno:3b", [ChatMessage("user", "oi")]))
+    assert chunks[-1].done and "Você disse: oi" in "".join(c.text for c in chunks)
+    bodies = [b for method, path, b in fake.requests if path == "/api/chat"]
+    assert "think" in bodies[0] and "think" not in bodies[1]

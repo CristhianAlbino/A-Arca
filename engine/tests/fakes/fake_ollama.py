@@ -30,6 +30,7 @@ class FakeOllama:
         self.models = dict(models or DEFAULT_MODELS)
         self.loaded: str | None = None
         self.token_delay = token_delay
+        self.reject_think = False  # simulate an Ollama that refuses the 'think' option
         self.requests: list[tuple[str, str, dict | None]] = []
         self._server: ThreadingHTTPServer | None = None
 
@@ -80,6 +81,8 @@ class FakeOllama:
                         self.wfile.write(json.dumps(event).encode() + b"\n")
                         self.wfile.flush()
                         time.sleep(fake.token_delay)
+                elif self.path == "/api/chat" and fake.reject_think and "think" in body:
+                    self._json(400, {"error": f"\"{body.get('model')}\" does not support thinking"})
                 elif self.path == "/api/chat":
                     model = body.get("model")
                     if model not in fake.models:

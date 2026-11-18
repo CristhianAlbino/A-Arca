@@ -124,7 +124,20 @@ class OllamaProvider:
             "messages": [{"role": m.role, "content": m.content} for m in messages],
             "stream": True,
             "keep_alive": f"{keep_alive_minutes}m",
+            # Reasoning models (e.g. qwen3.5) otherwise "think" for 1,500+ hidden tokens
+            # before the first visible word; on the RTX 5060 that is a minute of "Pensando…".
+            "think": False,
         }
+        try:
+            yield from self._chat_stream(body)
+        except ProviderError as exc:
+            if "think" not in str(exc).lower():
+                raise
+            # Older Ollama or a model that rejects the option: ask again without it.
+            body.pop("think")
+            yield from self._chat_stream(body)
+
+    def _chat_stream(self, body: dict[str, Any]) -> Iterator[ChatChunk]:
         try:
             lines = self.guard.stream_lines(
                 "POST",
