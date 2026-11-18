@@ -22,6 +22,9 @@ for entry in "${ITEMS[@]}"; do
   IFS='|' read -r url sub has_sum <<< "$entry"
   name="$(basename "$url")"
   file="$STAGE/$name"
+  if [ -e "$ARCA/$sub/$name" ]; then
+    echo "== $name: já está em $sub, pulando"; continue
+  fi
   echo "== $name: baixando"
   # -C - resumes a partial file; retries cover short network drops.
   remote="$(curl -sIL --fail "$url" | tr -d $'' | awk 'tolower($1)=="content-length:" {n=$2} END {print n}')"
