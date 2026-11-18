@@ -339,9 +339,21 @@ export interface LibraryHit {
   available: boolean;
   /** Matched words are wrapped in [[ ]]. */
   snippet: string;
+  /** Other files with the same book (same title, similar text), e.g. the EPUB of this PDF. */
+  copies: LibraryCopy[];
 }
 
-export interface LibraryDoc extends Omit<LibraryHit, "snippet"> {
+export interface LibraryCopy {
+  id: number;
+  uri: string;
+  title: string;
+  format: LibraryHit["format"];
+  size_bytes: number;
+  volume_label: string;
+  available: boolean;
+}
+
+export interface LibraryDoc extends LibraryCopy {
   status: "ok" | "sem-texto" | "erro";
   text: string;
 }

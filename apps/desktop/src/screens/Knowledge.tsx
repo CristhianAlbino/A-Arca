@@ -1,5 +1,14 @@
 // Phase 3: offline encyclopedias (Kiwix ZIM files) and the user's own library, on ARCA volumes.
-import { useCallback, useEffect, useMemo, useState, type FormEvent, type MouseEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
 
 import {
   knowledge,
@@ -51,6 +60,89 @@ function Highlighted({ text }: { text: string }) {
   return <>{parts.map((p, i) => (i % 2 === 1 ? <mark key={i}>{p}</mark> : p))}</>;
 }
 
+const MAX_MARKS = 300;
+
+/** Lowercase without accents, same length as the input (index i ↔ index i). */
+function foldSameLength(text: string): string {
+  let out = "";
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    out += ch.charCodeAt(0) < 128 ? ch.toLowerCase() : (ch.normalize("NFD")[0] ?? ch).toLowerCase();
+  }
+  return out;
+}
+
+/** [start, end) ranges where a searched word starts (accent- and case-insensitive). */
+function findMatches(text: string, query: string): [number, number][] {
+  const words = [...new Set(foldSameLength(query).match(/[\p{L}\p{N}]{2,}/gu) ?? [])];
+  if (!words.length) return [];
+  const folded = foldSameLength(text);
+  const ranges: [number, number][] = [];
+  for (const w of words) {
+    for (let at = folded.indexOf(w); at >= 0 && ranges.length < MAX_MARKS * 4; at = folded.indexOf(w, at + 1)) {
+      if (at > 0 && /[\p{L}\p{N}]/u.test(folded[at - 1])) continue; // only at the start of a word
+      ranges.push([at, at + w.length]);
+    }
+  }
+  ranges.sort((a, b) => a[0] - b[0]);
+  return ranges.slice(0, MAX_MARKS);
+}
+
+/** Document text with the searched words marked; scrolls to the first one. */
+function DocText({ text, query }: { text: string; query: string }) {
+  const ranges = useMemo(() => findMatches(text, query), [text, query]);
+  const box = useRef<HTMLDivElement | null>(null);
+  const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    setCurrent(0);
+  }, [ranges]);
+  useEffect(() => {
+    const marks = box.current?.querySelectorAll("mark");
+    marks?.forEach((m, i) => m.classList.toggle("current", i === current));
+    marks?.[current]?.scrollIntoView?.({ block: "center" });
+  }, [current, ranges]);
+
+  const nodes: ReactNode[] = [];
+  let last = 0;
+  ranges.forEach(([start, end], i) => {
+    if (start < last) return; // overlapping words
+    nodes.push(text.slice(last, start), <mark key={i}>{text.slice(start, end)}</mark>);
+    last = end;
+  });
+  nodes.push(text.slice(last));
+
+  return (
+    <>
+      {ranges.length > 0 && (
+        <div className="kb-doc-find">
+          <span className="muted">
+            {current + 1} de {ranges.length}
+            {ranges.length === MAX_MARKS && "+"} ocorrências
+          </span>
+          <button
+            type="button"
+            className="btn btn-secondary btn-small"
+            onClick={() => setCurrent((c) => (c - 1 + ranges.length) % ranges.length)}
+          >
+            Anterior
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary btn-small"
+            onClick={() => setCurrent((c) => (c + 1) % ranges.length)}
+          >
+            Próxima
+          </button>
+        </div>
+      )}
+      <div className="kb-doc-text" ref={box}>
+        {nodes}
+      </div>
+    </>
+  );
+}
+
 export function Knowledge() {
   const [zims, setZims] = useState<ZimInfo[] | null>(null);
   const [scanning, setScanning] = useState(false);
@@ -65,6 +157,7 @@ export function Knowledge() {
   const [lib, setLib] = useState<LibraryStatus | null>(null);
   const [docHits, setDocHits] = useState<LibraryHit[] | null>(null);
   const [doc, setDoc] = useState<LibraryDoc | null>(null);
+  const [searchedQuery, setSearchedQuery] = useState("");
 
   const loadLibrary = useCallback(async () => {
     try {
@@ -127,6 +220,7 @@ export function Knowledge() {
     setHistory([]);
     try {
       const q = query.trim();
+      setSearchedQuery(q);
       // A chosen encyclopedia narrows the search to it; otherwise search everything.
       const [z, d] = await Promise.all([
         anyAvailable ? knowledge.search(q, zimFilter || null) : Promise.resolve([] as SearchHit[]),
@@ -344,7 +438,7 @@ export function Knowledge() {
                   : "Não foi possível ler este arquivo (danificado, protegido por senha ou grande demais)."}
               </p>
             ) : (
-              <div className="kb-doc-text">{doc.text}</div>
+              <DocText text={doc.text} query={searchedQuery} />
             )}
           </article>
         ) : article ? (
@@ -392,6 +486,25 @@ export function Knowledge() {
                           </span>
                         )}
                       </button>
+                      {d.copies.length > 0 && (
+                        <p className="kb-copies muted">
+                          Também em:{" "}
+                          {d.copies.map((c, i) => (
+                            <span key={c.id}>
+                              {i > 0 && ", "}
+                              <button
+                                type="button"
+                                className="link-button"
+                                onClick={() => openDoc(c.id)}
+                                title={c.uri}
+                              >
+                                {FORMAT_LABEL[c.format]}
+                              </button>
+                              {c.volume_label !== d.volume_label && ` (${c.volume_label})`}
+                            </span>
+                          ))}
+                        </p>
+                      )}
                     </li>
                   ))}
                 </ul>

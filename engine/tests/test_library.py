@@ -176,3 +176,22 @@ def test_epub_indexed_and_broken_epub_does_not_stop(ctx, volume):
     assert summary["added"] == 6 and summary["failed"] == 1
     hit = service.search_library(ctx, "distrito cinzenta")[0]
     assert (hit["title"], hit["format"]) == ("A Colheita", "epub")
+
+
+def test_copies_of_same_book_are_grouped(ctx, volume):
+    from tests.fakes.make_epub import make_epub
+
+    story = "Katniss acordou cedo no Distrito 12 e foi caçar na floresta com Gale. " * 20
+    make_epub(volume / "05_LIVROS" / "colheita.epub", "Amanhecer na Colheita", [("Um", story)])
+    (volume / "05_LIVROS" / "Amanhecer na Colheita.txt").write_text(f"Amanhecer na colheita \n\n{story}", encoding="utf-8")
+    (volume / "05_LIVROS" / "outro").mkdir()
+    # same title, much longer text: a different book, not a copy
+    (volume / "05_LIVROS" / "outro" / "amanhecer.txt").write_text(
+        "AMANHECER NA COLHEITA\n\n" + "Katniss " + "palavra " * 1000, encoding="utf-8"
+    )
+    index(ctx)
+    hits = [h for h in service.search_library(ctx, "katniss") if "colheita" in h["title"].lower()]
+    assert len(hits) == 2
+    grouped = next(h for h in hits if h["copies"])
+    assert {grouped["format"], *(c["format"] for c in grouped["copies"])} == {"epub", "txt"}
+    assert all(c["available"] for c in grouped["copies"])

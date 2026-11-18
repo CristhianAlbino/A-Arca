@@ -1341,3 +1341,35 @@ button {
   line-height: 1.7;
   font-size: 15px;
 }
+
+.kb-copies {
+  margin: 4px 0 0 14px;
+  font-size: 12px;
+}
+
+.kb-copies .link-button {
+  font-size: 12px;
+}
+
+.kb-doc-find {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  background: var(--bg, #0b0b0c);
+  font-size: 13px;
+}
+
+.kb-doc-text mark {
+  background: var(--warn-bg);
+  color: var(--warn-text);
+  border-radius: 3px;
+}
+
+.kb-doc-text mark.current {
+  background: var(--accent);
+  color: var(--accent-ink);
+}

@@ -16,6 +16,7 @@ import os
 import re
 import sqlite3
 import threading
+import unicodedata
 import zipfile
 from collections.abc import Callable
 from pathlib import Path, PurePosixPath
@@ -181,6 +182,20 @@ def fts_query(text: str) -> str | None:
     return " ".join(terms)
 
 
+def _fold(text: str) -> str:
+    """Lowercase, no accents, letters and digits only: "Amanhecer na Colheita " → "amanhecernacolheita"."""
+    decomposed = unicodedata.normalize("NFKD", text)
+    return "".join(c for c in decomposed if c.isalnum()).lower()
+
+
+def _same_book(result: dict[str, Any], row: sqlite3.Row) -> bool:
+    title, chars = result["_key"]
+    if not title or title != _fold(row["title"]):
+        return False
+    bigger = max(chars, row["chars"]) or 1
+    return abs(chars - row["chars"]) / bigger <= 0.10
+
+
 # --- index ---------------------------------------------------------------------------
 class Library:
     def __init__(self, db: sqlite3.Connection, get_volumes: Callable[[], Any], db_path: Path | None = None):
@@ -336,29 +351,40 @@ class Library:
         return {v["id"] for v in self._get_volumes().status() if v["available"]}
 
     def search(self, text: str, limit: int = 20) -> list[dict[str, Any]]:
+        """Best matches first. Copies of the same book (same title, text length within 10%,
+        e.g. the EPUB and two PDFs of one novel) are shown once, with the others in `copies`."""
         query = fts_query(text)
         if not query:
             return []
         rows = self.db.execute(
             """
-            SELECT d.id, d.uri, d.title, d.format, d.size_bytes, d.volume_id, v.label AS volume_label,
-                   snippet(docs_fts, 1, '[[', ']]', '…', 14) AS snippet
+            SELECT d.id, d.uri, d.title, d.format, d.size_bytes, d.chars, d.volume_id,
+                   v.label AS volume_label, snippet(docs_fts, 1, '[[', ']]', '…', 14) AS snippet
             FROM docs_fts JOIN docs d ON d.id = docs_fts.rowid JOIN volumes v ON v.id = d.volume_id
             WHERE docs_fts MATCH ?
             ORDER BY bm25(docs_fts, 5.0, 1.0)
             LIMIT ?
             """,
-            (query, limit),
+            (query, limit * 3),
         ).fetchall()
         mounted = self._mounted()
-        return [
-            {
+        results: list[dict[str, Any]] = []
+        for r in rows:
+            entry = {
                 "id": r["id"], "uri": r["uri"], "title": r["title"], "format": r["format"],
                 "size_bytes": r["size_bytes"], "volume_label": r["volume_label"],
-                "available": r["volume_id"] in mounted, "snippet": r["snippet"],
+                "available": r["volume_id"] in mounted,
             }
-            for r in rows
-        ]
+            main = next((x for x in results if _same_book(x, r)), None)
+            if main is not None:
+                main["copies"].append(entry)
+                continue
+            if len(results) < limit:
+                results.append({**entry, "snippet": r["snippet"], "copies": [],
+                                "_key": (_fold(r["title"]), r["chars"])})
+        for item in results:
+            item.pop("_key")
+        return results
 
     def read(self, doc_id: int) -> dict[str, Any]:
         row = self.db.execute(
