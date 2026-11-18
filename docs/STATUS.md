@@ -36,7 +36,7 @@
 5. IA com modelo real: **funciona** (2026-11-18, Ollama 0.40.16 + `qwen3.5:4b`, 51 tokens/s, primeira palavra em 1 s — [relatório](testes/2026-11-18-ia-real-qwen.md)). Conferido também no app instalado (resposta em menos de 5 s). Falta testar `qwen3.5:9b` depois do upgrade para 24 GB.
 6. Testar o download de um modelo pelo painel "Gerenciar modelos" (modo online) — o primeiro foi baixado pelo terminal.
 7. Colocar um ZIM real (ex.: Wikipédia PT `nopic`) e alguns PDFs num volume e testar a tela Conhecimento (Procurar e Indexar).
-8. Próximo a adiantar: perfis da 2B (depois de medir com Ollama real), 2C (IA online opcional), 3C (busca semântica e RAG, depende da IA local).
+8. A IA já responde com trechos do acervo e cita as fontes (3C, primeira versão — [relatório](testes/2026-11-18-fase3c-respostas-com-fontes.md)). Próximo: limiar de relevância e busca por significado (embeddings) na 3C, perfis da 2B, 2C (IA online opcional), e a Wikipédia PT completa (download em andamento, ver `scripts/acervo/baixar_lote1.sh`).
 
 ## Pendências da Fase 1
 
