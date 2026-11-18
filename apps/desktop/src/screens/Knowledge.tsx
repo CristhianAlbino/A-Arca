@@ -93,6 +93,17 @@ function DocText({ text, query }: { text: string; query: string }) {
   const ranges = useMemo(() => findMatches(text, query), [text, query]);
   const box = useRef<HTMLDivElement | null>(null);
   const [current, setCurrent] = useState(0);
+  // The app's top bar is sticky too; sit right below it (its height changes when it wraps).
+  const [barTop, setBarTop] = useState(0);
+  useEffect(() => {
+    const topbar = document.querySelector<HTMLElement>(".topbar");
+    if (!topbar) return;
+    const update = () => setBarTop(topbar.offsetHeight);
+    update();
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(update);
+    observer?.observe(topbar);
+    return () => observer?.disconnect();
+  }, []);
 
   useEffect(() => {
     setCurrent(0);
@@ -115,7 +126,7 @@ function DocText({ text, query }: { text: string; query: string }) {
   return (
     <>
       {ranges.length > 0 && (
-        <div className="kb-doc-find">
+        <div className="kb-doc-find" style={{ top: barTop }}>
           <span className="muted">
             {current + 1} de {ranges.length}
             {ranges.length === MAX_MARKS && "+"} ocorrências
