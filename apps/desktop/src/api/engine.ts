@@ -171,7 +171,7 @@ export interface StoredMessage {
   content: string;
   model: string | null;
   status: "ok" | "interrupted" | "error";
-  stats: Record<string, number | null> | null;
+  stats: (Record<string, number | null> & { sources?: ChatSource[] }) | null;
   created_at: string;
 }
 
@@ -183,8 +183,19 @@ export type ChatEvent =
   | { type: "meta"; conversation_id: string; model: string }
   | { type: "notice"; message: string }
   | { type: "delta"; text: string }
+  | { type: "sources"; sources: ChatSource[] }
   | { type: "done"; stats: Record<string, number | null> }
   | { type: "error"; message: string };
+
+/** A passage from the user's collection that grounded an answer (Phase 3C). */
+export interface ChatSource {
+  n: number;
+  kind: "doc" | "zim";
+  title: string;
+  origin: string;
+  excerpt: string;
+  ref: { doc_id?: number; zim_id?: string; path?: string };
+}
 
 export const ai = {
   status: () => api<AiStatus>("/ai/status"),
@@ -195,7 +206,7 @@ export const ai = {
 
   /** Streams one answer. Resolves when the stream ends; abort with `signal` to stop. */
   async chat(
-    body: { text: string; model: string; conversation_id?: string | null },
+    body: { text: string; model: string; conversation_id?: string | null; use_sources?: boolean },
     onEvent: (event: ChatEvent) => void,
     signal?: AbortSignal,
   ): Promise<void> {

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import { ai, type AiStatus, type ChatEvent, type ConversationSummary } from "../api/engine";
+import { ai, type AiStatus, type ChatEvent, type ChatSource, type ConversationSummary } from "../api/engine";
 import { ArcaMark, PlusIcon } from "../components/Icons";
 import { MessageText } from "../components/MessageText";
 import { ModelManager } from "../components/ModelManager";
@@ -11,6 +11,17 @@ interface UiMessage {
   content: string;
   status: "ok" | "streaming" | "interrupted" | "error";
   stats?: Record<string, number | null> | null;
+  sources?: ChatSource[];
+}
+
+const SOURCES_KEY = "arca.chat.useSources";
+
+function readUseSources(): boolean {
+  try {
+    return window.localStorage.getItem(SOURCES_KEY) !== "0";
+  } catch {
+    return true;
+  }
 }
 
 let keySeq = 0;
@@ -27,7 +38,7 @@ function groupLabel(iso: string): string {
   return "Mais antigas";
 }
 
-export function Chat() {
+export function Chat({ onOpenSource }: { onOpenSource?: (source: ChatSource) => void }) {
   const [status, setStatus] = useState<AiStatus | null>(null);
   const [statusError, setStatusError] = useState<string | null>(null);
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
@@ -38,6 +49,16 @@ export function Chat() {
   const [input, setInput] = useState("");
   const [search, setSearch] = useState("");
   const [streaming, setStreaming] = useState(false);
+  const [useSources, setUseSources] = useState(readUseSources);
+
+  function toggleSources(on: boolean) {
+    setUseSources(on);
+    try {
+      window.localStorage.setItem(SOURCES_KEY, on ? "1" : "0");
+    } catch {
+      /* preference only */
+    }
+  }
   const [managing, setManaging] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
@@ -88,6 +109,7 @@ export function Chat() {
           content: m.content,
           status: m.status,
           stats: m.stats,
+          sources: m.stats?.sources,
         })),
     );
   }
@@ -132,6 +154,9 @@ export function Chat() {
         case "notice":
           setNotice(event.message);
           break;
+        case "sources":
+          updateLast((m) => ({ ...m, sources: event.sources }));
+          break;
         case "delta":
           updateLast((m) => ({ ...m, content: m.content + event.text }));
           break;
@@ -145,7 +170,11 @@ export function Chat() {
     };
 
     try {
-      await ai.chat({ text, model, conversation_id: currentId }, onEvent, controller.signal);
+      await ai.chat(
+        { text, model, conversation_id: currentId, use_sources: useSources },
+        onEvent,
+        controller.signal,
+      );
     } catch (err) {
       if (controller.signal.aborted) {
         updateLast((m) => ({ ...m, status: "interrupted" }));
@@ -267,6 +296,15 @@ export function Chat() {
           <span className="muted chat-model-state">
             {loadedNow ? "carregado na memória" : selected ? "carrega ao enviar" : ""}
           </span>
+          <label className="chat-sources-toggle" title="Buscar trechos na sua biblioteca e nas enciclopédias e citar as fontes">
+            <input
+              type="checkbox"
+              checked={useSources}
+              onChange={(e) => toggleSources(e.target.checked)}
+              disabled={streaming}
+            />
+            Consultar acervo
+          </label>
           {available && (
             <button
               type="button"
@@ -308,8 +346,8 @@ export function Chat() {
                 </span>
                 <h1>Como posso ajudar?</h1>
                 <p className="muted">
-                  A conversa roda no seu computador, com o modelo escolhido acima. Nesta versão a IA ainda
-                  não consulta a sua biblioteca de documentos.
+                  A conversa roda no seu computador, com o modelo escolhido acima. Com “Consultar acervo”
+                  ligado, a IA busca trechos nos seus livros e enciclopédias e cita as fontes.
                 </p>
               </div>
             ) : (
@@ -325,6 +363,26 @@ export function Chat() {
                     </span>
                     <div className={`msg-body${m.status === "error" ? " msg-error" : ""}`}>
                       {m.content ? <MessageText text={m.content} /> : m.status === "streaming" && <span className="typing">Pensando…</span>}
+                      {m.sources && m.sources.length > 0 && (
+                        <div className="msg-sources">
+                          <span className="msg-sources-title">Fontes do acervo</span>
+                          <ol>
+                            {m.sources.map((s) => (
+                              <li key={s.n}>
+                                <button
+                                  type="button"
+                                  className="msg-source"
+                                  onClick={() => onOpenSource?.(s)}
+                                  title={s.excerpt}
+                                >
+                                  <span className="msg-source-n">[{s.n}]</span> {s.title}
+                                  <span className="muted"> · {s.origin}</span>
+                                </button>
+                              </li>
+                            ))}
+                          </ol>
+                        </div>
+                      )}
                       {m.status === "interrupted" && <span className="msg-meta">Resposta interrompida.</span>}
                       {m.status === "ok" && m.stats?.tokens_per_second != null && (
                         <span className="msg-meta">

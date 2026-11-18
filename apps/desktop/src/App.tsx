@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { engine, type ActivityItem, type SystemSnapshot } from "./api/engine";
+import { engine, type ActivityItem, type ChatSource, type SystemSnapshot } from "./api/engine";
 import { TopBar } from "./components/TopBar";
 import { MODULES, type ModuleId } from "./modules";
 import { Chat } from "./screens/Chat";
@@ -14,6 +14,8 @@ export function App() {
   const [snapshot, setSnapshot] = useState<SystemSnapshot | null>(null);
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [error, setError] = useState<string | null>(null);
+  // A source clicked under an AI answer, to open in the Knowledge screen.
+  const [openSource, setOpenSource] = useState<ChatSource | null>(null);
 
   const refresh = useCallback(async () => {
     try {
@@ -43,9 +45,14 @@ export function App() {
         </div>
       )}
       {current === "ia" ? (
-        <Chat />
+        <Chat
+          onOpenSource={(source) => {
+            setOpenSource(source);
+            setCurrent("conhecimento");
+          }}
+        />
       ) : current === "conhecimento" ? (
-        <Knowledge />
+        <Knowledge openSource={openSource} onSourceOpened={() => setOpenSource(null)} />
       ) : current === "inicio" ? (
         snapshot ? (
           <Home snapshot={snapshot} activity={activity} onRefresh={refresh} onNavigate={setCurrent} />

@@ -19,6 +19,7 @@ import {
   type LibraryStatus,
   type SearchHit,
   type ZimInfo,
+  type ChatSource,
 } from "../api/engine";
 import { RefreshIcon } from "../components/Icons";
 import { size } from "../format";
@@ -89,8 +90,20 @@ function findMatches(text: string, query: string): [number, number][] {
 }
 
 /** Document text with the searched words marked; scrolls to the first one. */
-function DocText({ text, query }: { text: string; query: string }) {
-  const ranges = useMemo(() => findMatches(text, query), [text, query]);
+/** Where a cited passage sits in the text (its first 80 characters, exact). */
+function findPassage(text: string, passage: string): [number, number][] {
+  const head = passage.slice(0, 80).trim();
+  if (head.length < 10) return [];
+  const at = text.indexOf(head);
+  return at >= 0 ? [[at, at + Math.min(passage.length, text.length - at)]] : [];
+}
+
+function DocText({ text, query, passage }: { text: string; query: string; passage?: string }) {
+  const cited = useMemo(() => (passage ? findPassage(text, passage) : []), [text, passage]);
+  const ranges = useMemo(
+    () => (cited.length ? cited : findMatches(text, query)),
+    [cited, text, query],
+  );
   const box = useRef<HTMLDivElement | null>(null);
   const [current, setCurrent] = useState(0);
   // The app's top bar is sticky too; sit right below it (its height changes when it wraps).
@@ -128,8 +141,14 @@ function DocText({ text, query }: { text: string; query: string }) {
       {ranges.length > 0 && (
         <div className="kb-doc-find" style={{ top: barTop }}>
           <span className="muted">
-            {current + 1} de {ranges.length}
-            {ranges.length === MAX_MARKS && "+"} ocorrências
+            {cited.length ? (
+              "Trecho citado pela IA"
+            ) : (
+              <>
+                {current + 1} de {ranges.length}
+                {ranges.length === MAX_MARKS && "+"} ocorrências
+              </>
+            )}
           </span>
           <button
             type="button"
@@ -154,7 +173,13 @@ function DocText({ text, query }: { text: string; query: string }) {
   );
 }
 
-export function Knowledge() {
+interface KnowledgeProps {
+  /** A source clicked under an AI answer: open it here. */
+  openSource?: ChatSource | null;
+  onSourceOpened?: () => void;
+}
+
+export function Knowledge({ openSource, onSourceOpened }: KnowledgeProps = {}) {
   const [zims, setZims] = useState<ZimInfo[] | null>(null);
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -169,6 +194,7 @@ export function Knowledge() {
   const [docHits, setDocHits] = useState<LibraryHit[] | null>(null);
   const [doc, setDoc] = useState<LibraryDoc | null>(null);
   const [searchedQuery, setSearchedQuery] = useState("");
+  const [citedPassage, setCitedPassage] = useState("");
 
   const loadLibrary = useCallback(async () => {
     try {
@@ -206,6 +232,23 @@ export function Knowledge() {
     }
   }
 
+  useEffect(() => {
+    if (!openSource) return;
+    const { doc_id, zim_id, path } = openSource.ref;
+    setHits(null);
+    setDocHits(null);
+    if (doc_id != null) {
+      // The cited passage is an exact piece of the text: the reader marks it and jumps there.
+      setSearchedQuery("");
+      setCitedPassage(openSource.excerpt.replace(/^…|…$/g, "").trim());
+      openDoc(doc_id);
+    } else if (zim_id) {
+      open(zim_id, path);
+    }
+    onSourceOpened?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openSource]);
+
   const loadZims = useCallback(async (rescan: boolean) => {
     setScanning(true);
     try {
@@ -232,6 +275,7 @@ export function Knowledge() {
     try {
       const q = query.trim();
       setSearchedQuery(q);
+      setCitedPassage("");
       // A chosen encyclopedia narrows the search to it; otherwise search everything.
       const [z, d] = await Promise.all([
         anyAvailable ? knowledge.search(q, zimFilter || null) : Promise.resolve([] as SearchHit[]),
@@ -449,7 +493,7 @@ export function Knowledge() {
                   : "Não foi possível ler este arquivo (danificado, protegido por senha ou grande demais)."}
               </p>
             ) : (
-              <DocText text={doc.text} query={searchedQuery} />
+              <DocText text={doc.text} query={searchedQuery} passage={citedPassage} />
             )}
           </article>
         ) : article ? (

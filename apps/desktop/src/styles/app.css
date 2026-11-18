@@ -1373,3 +1373,62 @@ button {
   background: var(--accent);
   color: var(--accent-ink);
 }
+
+/* ---------- Sources under AI answers (Phase 3C) ---------- */
+.chat-sources-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.chat-sources-toggle input {
+  accent-color: var(--accent);
+}
+
+.msg-sources {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-soft);
+  font-size: 13px;
+}
+
+.msg-sources-title {
+  display: block;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.msg-sources ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.msg-source {
+  background: none;
+  border: 0;
+  padding: 2px 0;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.msg-source:hover {
+  color: var(--accent);
+}
+
+.msg-source-n {
+  color: var(--accent);
+  font-weight: 700;
+}
