@@ -61,6 +61,22 @@ def keywords(question: str, limit: int = 8) -> list[str]:
     return seen[:limit]
 
 
+def relevant_excerpt(title: str, excerpt: str, words: list[str]) -> bool:
+    """Require actual evidence from the retrieved passage, not just a loose OR hit.
+
+    A one-keyword question only needs one match. Multi-term questions need at
+    least two distinct matches across title + excerpt, with at least one in the
+    excerpt itself. This reduces unrelated citations without claiming that
+    keyword overlap guarantees factual support.
+    """
+    if not excerpt.strip() or not words:
+        return False
+    return (
+        matched_words(excerpt, words) >= 1
+        and matched_words(f"{title} {excerpt}", words) >= min(2, len(words))
+    )
+
+
 def gather(ctx, question: str) -> list[Source]:
     """Up to MAX_SOURCES passages: library first, then encyclopedias. Never raises."""
     sources: list[Source] = []
@@ -68,7 +84,11 @@ def gather(ctx, question: str) -> list[Source]:
     if not words:
         return sources
     try:
-        for hit in ctx.library.passages(words, limit=DOC_SOURCES):
+        for hit in ctx.library.passages(words, limit=DOC_SOURCES * 2):
+            # FTS5's fallback uses OR: a passage matching only a generic word ("casa")
+            # is weak evidence for a multi-term question ("tratar queimadura em casa").
+            if not relevant_excerpt(hit["title"], hit["excerpt"], words):
+                continue
             sources.append(
                 Source(
                     n=len(sources) + 1, kind="doc", title=hit["title"],
@@ -76,6 +96,8 @@ def gather(ctx, question: str) -> list[Source]:
                     excerpt=hit["excerpt"][:EXCERPT_CHARS], ref={"doc_id": hit["id"]},
                 )
             )
+            if len(sources) >= DOC_SOURCES:
+                break
     except Exception:
         log.exception("Falha ao buscar trechos na biblioteca")
     try:

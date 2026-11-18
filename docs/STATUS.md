@@ -38,6 +38,11 @@
 7. Colocar um ZIM real (ex.: Wikipédia PT `nopic`) e alguns PDFs num volume e testar a tela Conhecimento (Procurar e Indexar).
 8. A IA já responde com trechos do acervo e cita as fontes (3C, primeira versão — [relatório](testes/2026-11-18-fase3c-respostas-com-fontes.md)). Próximo: limiar de relevância e busca por significado (embeddings) na 3C, perfis da 2B, 2C (IA online opcional), e a Wikipédia PT completa (download em andamento, ver `scripts/acervo/baixar_lote1.sh`).
 
+## Revisões paralelas em andamento (18/11/2026)
+
+- **CI do GitHub Actions:** 33 execuções falharam; jobs da última execução não iniciaram passos. Diagnóstico e próximos passos na [issue #1](https://github.com/CristhianAlbino/A-Arca/issues/1). Causa não confirmada; não alterar YAML sem evidência.
+- **RAG 3C — proposta em revisão:** [PR #2](https://github.com/CristhianAlbino/A-Arca/pull/2) em draft, branch `fix/rag-filtrar-fontes-fracas-chatgpt` (derivada de `feat/fase-3-biblioteca`) descarta trechos com evidência fraca antes de enviá-los ao modelo e acrescenta testes de regressão. **Ainda não integrada e sem suíte executada no notebook.** Ver [diário](sessoes/2026-11-18-chatgpt-rag-relevancia.md).
+
 ## Pendências da Fase 1
 
 - Empacotar as fontes Inter e Space Grotesk (hoje usa Segoe UI/sistema como reserva).
