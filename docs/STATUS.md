@@ -1,6 +1,6 @@
 # STATUS da ARCA
 
-**Última atualização:** 2026-11-17 · **Fase atual:** 1 — ARCA CORE (compila e roda no notebook; faltam Wi-Fi desligado, pendrive e instalador) · **Adiantado:** Fase 2A — IA local, no branch `feat/fase-2-ai`
+**Última atualização:** 2026-11-17 · **Fase atual:** 1 — ARCA CORE (compila e roda no notebook; instalador gerado; faltam Wi-Fi desligado, pendrive e instalar o .exe) · **Adiantado:** Fase 2A — IA local, no branch `feat/fase-2-ai`
 
 ## O que existe
 

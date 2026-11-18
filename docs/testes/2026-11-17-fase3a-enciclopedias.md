@@ -62,6 +62,20 @@ O motor empacotado, com um volume temporário contendo o ZIM de teste, listou `E
 
 **Lint:** `ruff check arca_engine tests` → `All checks passed!` (havia 28 avisos, a maioria anterior a esta sessão; a sugestão SIM118 em `ai/chat.py` foi recusada porque `sqlite3.Row` itera valores, não chaves).
 
+## Instalador — `scripts\build.ps1` (com a correção acima)
+
+```
+    Finished `release` profile [optimized] target(s) in 6m 35s
+    Finished 1 bundle at:
+        ...\apps\desktop\src-tauri\target\release\bundle\nsis\ARCA_0.1.0_x64-setup.exe (24.17 MiB)
+```
+
+- O Tauri baixou as ferramentas do NSIS do GitHub na primeira vez (só no build, nunca no app).
+- O motor junto do app (`target\release\engine`) tem `zim-9.dll` e `libzim.cp312-win_amd64.pyd`; `--check-deps` passou.
+- `target\release\arca.exe` (versão final, sem instalar): iniciou `arca-engine.exe` como processo filho, escutando só em `127.0.0.1`; fechar a janela encerrou os dois.
+- O instalador `.exe` **não foi executado** (instalar no notebook fica a critério do usuário).
+
 ## Não testado
 
 - ZIMs reais grandes (Wikipédia PT/EN): desempenho da busca e da listagem.
+- Rodar o instalador e usar o app instalado.
