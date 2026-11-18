@@ -36,3 +36,5 @@ Decisão de implementação: em vez de rodar o `kiwix-serve` (ADR 0005), a prime
 - [x] "Buscar e depois ler" na biblioteca e nas enciclopédias para a IA; respostas citando [n], fontes clicáveis que abrem o trecho; botão "Consultar acervo" ([relatório](../testes/2026-11-18-fase3c-respostas-com-fontes.md))
 - [ ] Limiar de relevância (hoje fontes pouco úteis ainda entram)
 - [ ] Embeddings pelo Ollama, `sqlite-vec` atrás de `VectorStore` (busca por significado)
+- [ ] Revisar e executar os testes da proposta de filtro lexical de relevância em `fix/rag-filtrar-fontes-fracas-chatgpt` (ajuste inicial da 3C, sem embeddings). Só marcar concluído depois de validação.
+
