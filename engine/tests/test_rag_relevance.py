@@ -29,12 +29,13 @@ def test_multiword_question_skips_weak_library_hit():
          "excerpt": "Uma casa bonita ao lado do rio."},
         {"id": 2, "title": "Primeiros socorros", "format": "txt", "volume_label": "SSD",
          "excerpt": "Tratamento de queimaduras: resfrie a região com água corrente."},
+        {"id": 3, "title": "Queimaduras", "format": "txt", "volume_label": "PENDRIVE",
+         "excerpt": "Para tratar lesões leves, procure orientação adequada."},
     ]
     sources = retrieve.gather(fake_context(hits), "Como tratar queimadura leve em casa?")
-    assert len(sources) == 1
-    assert sources[0].kind == "doc"
-    assert sources[0].ref["doc_id"] == 2
-    assert sources[0].n == 1
+    assert [source.kind for source in sources] == ["doc", "doc"]
+    assert [source.ref["doc_id"] for source in sources] == [2, 3]
+    assert [source.n for source in sources] == [1, 2]
 
 
 def test_title_alone_does_not_justify_irrelevant_excerpt():
