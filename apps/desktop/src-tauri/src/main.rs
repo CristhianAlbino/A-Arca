@@ -145,6 +145,15 @@ fn stop_engine(app: &AppHandle) {
 
 fn main() {
     let app = tauri::Builder::default()
+        // Must be the first plugin. A second launch (shortcut clicked twice) would start a
+        // second engine on the same SQLite database; instead, show the window already open.
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.unminimize();
+                let _ = window.show();
+                let _ = window.set_focus();
+            }
+        }))
         .manage(Engine::default())
         .setup(|app| {
             if let Err(err) = start_engine(app.handle()) {

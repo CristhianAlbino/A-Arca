@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from typing import Any
 
 from fastapi import FastAPI, Request
@@ -13,6 +14,8 @@ from pydantic import BaseModel
 from .. import __version__, service
 from ..context import AppContext
 from ..security.token import bearer_from_header, tokens_match
+
+log = logging.getLogger("arca_engine.api")
 
 # Origins of the ARCA window (Tauri on Windows / other OS) and of the Vite dev server.
 ALLOWED_ORIGINS = [
@@ -54,7 +57,15 @@ def create_app(ctx: AppContext) -> FastAPI:
         given = bearer_from_header(request.headers.get("authorization"))
         if not tokens_match(ctx.token, given):
             return JSONResponse({"detail": "Token ausente ou inválido."}, status_code=401)
-        return await call_next(request)
+        try:
+            return await call_next(request)
+        except Exception:
+            # Answered here, inside the CORS middleware: an unhandled error would otherwise
+            # reach the window without CORS headers and look like "no connection".
+            log.exception("Erro interno em %s %s", request.method, request.url.path)
+            return JSONResponse(
+                {"detail": "Erro interno no motor da ARCA. Detalhes no arquivo de log."}, status_code=500
+            )
 
     # Added after the token middleware so it wraps it: 401 answers also carry CORS headers.
     app.add_middleware(

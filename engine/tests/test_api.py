@@ -76,3 +76,22 @@ def test_ai_chat_streams_ndjson(app_paths, tmp_path):
     finally:
         ctx.close()
         fake.stop()
+
+
+def test_internal_error_is_json_with_cors(app_paths, monkeypatch):
+    """A bug in a route must reach the window as an error message, not as 'no connection'."""
+    from arca_engine import service
+
+    def boom(*args, **kwargs):
+        raise AttributeError("simulated bug")
+
+    monkeypatch.setattr(service, "list_zims", boom)
+    ctx = AppContext.create(app_paths, token=TOKEN, include_drive_roots=False)
+    try:
+        with TestClient(create_app(ctx), raise_server_exceptions=False) as c:
+            r = c.get("/knowledge/zims", headers={**auth(), "Origin": "http://tauri.localhost"})
+            assert r.status_code == 500
+            assert "Erro interno" in r.json()["detail"]
+            assert r.headers.get("access-control-allow-origin") == "http://tauri.localhost"
+    finally:
+        ctx.close()
