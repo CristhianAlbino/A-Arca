@@ -102,7 +102,7 @@ class ChatStore:
         return {
             **dict(row),
             "messages": [
-                {**{k: m[k] for k in m.keys() if k != "stats_json"},
+                {**{k: m[k] for k in m.keys() if k != "stats_json"},  # noqa: SIM118 (sqlite3.Row iterates values)
                  "stats": json.loads(m["stats_json"]) if m["stats_json"] else None}
                 for m in messages
             ],

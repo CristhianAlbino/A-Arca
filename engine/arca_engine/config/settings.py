@@ -51,7 +51,7 @@ class Settings:
         return {**extra, **data}
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "Settings":
+    def from_dict(cls, data: dict[str, Any]) -> Settings:
         known = {f for f in cls.__dataclass_fields__ if f != "extra"}
         kwargs = {k: v for k, v in data.items() if k in known}
         extra = {k: v for k, v in data.items() if k not in known}

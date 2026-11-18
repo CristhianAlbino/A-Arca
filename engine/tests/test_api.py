@@ -5,10 +5,10 @@ import pytest
 pytest.importorskip("fastapi")
 pytest.importorskip("httpx")
 
-from fastapi.testclient import TestClient  # noqa: E402
+from fastapi.testclient import TestClient
 
-from arca_engine.api.app import create_app  # noqa: E402
-from arca_engine.context import AppContext  # noqa: E402
+from arca_engine.api.app import create_app
+from arca_engine.context import AppContext
 
 TOKEN = "token-de-teste-" + "x" * 30
 

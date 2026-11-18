@@ -53,7 +53,7 @@ class FakeOllama:
                 self.end_headers()
                 self.wfile.write(data)
 
-            def do_GET(self):  # noqa: N802
+            def do_GET(self):
                 fake.requests.append(("GET", self.path, None))
                 if self.path == "/api/version":
                     self._json(200, {"version": "0.0.0-fake"})
@@ -64,7 +64,7 @@ class FakeOllama:
                 else:
                     self._json(404, {"error": "not found"})
 
-            def do_POST(self):  # noqa: N802
+            def do_POST(self):
                 body = self._body()
                 fake.requests.append(("POST", self.path, body))
                 if self.path == "/api/generate" and body.get("keep_alive") == 0:
@@ -96,7 +96,7 @@ class FakeOllama:
                 else:
                     self._json(404, {"error": "not found"})
 
-            def do_DELETE(self):  # noqa: N802
+            def do_DELETE(self):
                 body = self._body()
                 fake.requests.append(("DELETE", self.path, body))
                 model = (body or {}).get("model")

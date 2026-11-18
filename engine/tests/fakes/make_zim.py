@@ -19,17 +19,21 @@ PNG = base64.b64decode(
 ARTICLES = {
     "Agua_potavel": (
         "Água potável",
-        "<p>A <b>água potável</b> é própria para o consumo humano. Ferver a água por um minuto "
+        (
+            "<p>A <b>água potável</b> é própria para o consumo humano. Ferver a água por um minuto "
         'elimina a maioria dos microrganismos. Veja também <a href="Filtro_de_agua">filtro de água</a> '
         'e <a href="https://pt.wikipedia.org/wiki/Agua">a versão online</a>.</p>'
         '<img src="I/gota.png" alt="Gota de água">'
         '<script>alert("não deveria rodar")</script>'
-        '<p onclick="roubar()" style="color:red">Parágrafo com atributos perigosos.</p>',
+        '<p onclick="roubar()" style="color:red">Parágrafo com atributos perigosos.</p>'
+        ),
     ),
     "Filtro_de_agua": (
         "Filtro de água",
-        "<p>Um <b>filtro de água</b> remove partículas e parte dos microrganismos. "
-        'Depois de filtrar, ainda é recomendável <a href="Agua_potavel#ferver">ferver</a>.</p>',
+        (
+            "<p>Um <b>filtro de água</b> remove partículas e parte dos microrganismos. "
+        'Depois de filtrar, ainda é recomendável <a href="Agua_potavel#ferver">ferver</a>.</p>'
+        ),
     ),
     "Radio_amador": (
         "Rádio amador",

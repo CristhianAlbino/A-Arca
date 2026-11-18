@@ -33,7 +33,7 @@ class AppPaths:
     def database_file(self) -> Path:
         return self.data_dir / "arca.db"
 
-    def ensure(self) -> "AppPaths":
+    def ensure(self) -> AppPaths:
         for d in (self.config_dir, self.data_dir, self.logs_dir):
             d.mkdir(parents=True, exist_ok=True)
         return self

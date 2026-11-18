@@ -7,7 +7,7 @@ from arca_engine.netguard import NetGuard, NetPolicy, NetworkBlocked
 
 
 class _Handler(BaseHTTPRequestHandler):
-    def do_GET(self):  # noqa: N802
+    def do_GET(self):
         if self.path == "/redirect-out":
             self.send_response(302)
             self.send_header("Location", "https://example.com/roubado")

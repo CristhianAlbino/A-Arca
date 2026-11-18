@@ -5,8 +5,8 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from arca_engine.config.paths import resolve_app_paths  # noqa: E402
-from arca_engine.storage.db import open_database  # noqa: E402
+from arca_engine.config.paths import resolve_app_paths
+from arca_engine.storage.db import open_database
 
 
 @pytest.fixture

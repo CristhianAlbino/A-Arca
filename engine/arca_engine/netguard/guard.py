@@ -124,7 +124,7 @@ class NetGuard:
         guard = self
 
         class _CheckedRedirect(urllib.request.HTTPRedirectHandler):
-            def redirect_request(self, req, fp, code, msg, hdrs, newurl):  # noqa: N802
+            def redirect_request(self, req, fp, code, msg, hdrs, newurl):
                 guard.check(newurl)
                 return super().redirect_request(req, fp, code, msg, hdrs, newurl)
 

@@ -5,7 +5,7 @@ from arca_engine.ai.budget import GB
 from arca_engine.context import AppContext
 from tests.fakes.fake_ollama import FakeOllama
 
-PLENTY = lambda: (int(7.5 * GB), 12 * GB)  # noqa: E731  (RTX 5060 + 24 GB RAM, roughly)
+PLENTY = lambda: (int(7.5 * GB), 12 * GB)
 
 
 @pytest.fixture
