@@ -77,6 +77,15 @@ O motor empacotado, com um volume temporário contendo o ZIM de teste, listou `E
 - **Mas** a instalação foi feita de dentro do app Claude Desktop, que é um pacote MSIX: o Windows redirecionou tudo para `AppData\Local\Packages\Claude_…\LocalCache\Local\ARCA` (área virtual que só o Claude enxerga). Para o usuário, nada foi instalado. Essa cópia foi desinstalada (`uninstall.exe /S`, saída 0) e o instalador foi aberto pelo `explorer.exe`, fora da área virtual, para o usuário concluir.
 - Lição para outras sessões de IA: não instalar programas a partir do Claude Desktop; abrir o instalador pelo Explorer ou pedir ao usuário.
 
+### App instalado pelo usuário (instalador aberto pelo Explorer)
+
+- Instalado de verdade em `%LOCALAPPDATA%\ARCA` (arca.exe, engine, uninstall.exe), atalhos no menu Iniciar e na Área de Trabalho.
+- Aberto pelo Explorer: `arca.exe` → filho `engine\arca-engine.exe` escutando em `127.0.0.1:57580`. A tela Início levou alguns segundos em "Conectando ao motor…" (partida do motor empacotado com a RAM em ~95% de uso) e depois carregou com RAM, VRAM e disco reais.
+- **Falha 1 — tela Conhecimento:** "Sem conexão com o motor local da ARCA". Reproduzido rodando o motor instalado à parte: `GET /knowledge/zims` → 500, `AttributeError: 'ZimLibrary' object has no attribute 'catalog'`. Causa: o instalador foi gerado enquanto o código ainda era editado (o PyInstaller pegou o `service.py` novo com o `kiwix.py` antigo). O código commitado estava certo; o instalador foi gerado de novo a partir do commit `bf93877`, sem edições durante o build, e o motor empacotado novo respondeu `GET /knowledge/zims` → `[] [200]`, `db_schema: 3`.
+- **Falha 2 — erro aparecia como "sem conexão":** um erro não tratado saía sem cabeçalhos CORS e a janela não conseguia ler a resposta. Corrigido: o motor responde JSON 500 "Erro interno no motor da ARCA" com CORS e registra o erro no log (teste `test_internal_error_is_json_with_cors`).
+- **Falha 3 — duas ARCAs ao mesmo tempo:** abrir o app de novo iniciava uma segunda janela e um segundo motor usando o mesmo banco. Corrigido com `tauri-plugin-single-instance` (a segunda abertura traz a janela existente para frente).
+- Motor: `90 passed, 1 warning in 40.94s`; `ruff`: `All checks passed!`; `cargo build` sem avisos.
+
 ## Não testado
 
 - ZIMs reais grandes (Wikipédia PT/EN): desempenho da busca e da listagem.
