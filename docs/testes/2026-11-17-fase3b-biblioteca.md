@@ -69,3 +69,17 @@ Todos com título correto. **Ponto de atenção:** `pypdf` leva ~20–50 s por l
 **Instalador** do commit `652a41f`: `--check-deps` ok (inclui `pypdf`), 25.04 MiB. Ainda não instalado.
 
 **Registro da pasta do Drive pelo app instalado (automação de tela):** o primeiro texto digitado foi colado da área de transferência ("ollama") e revelou o defeito do caminho relativo (corrigido no commit `6a7a9c9`, ainda fora do instalador). Na segunda tentativa as teclas não chegaram à ARCA (provavelmente foram para outra janela em primeiro plano); a automação foi interrompida e o registro ficou para o usuário fazer.
+
+## App instalado com conteúdo real (2026-11-18, usuário + conferência)
+
+- Instalador do commit `652a41f` instalado pelo usuário (`arca.exe` de 23:57); um `arca.exe` e um `arca-engine.exe`.
+- O usuário registrou `G:\Meu Drive\ARCA` como volume "DRIVE" (marcador `.arca-volume.json` criado na pasta) e indexou: **"5 documentos · Última indexação: 5 novos, 0 atualizados, 0 removidos"**.
+- Busca `katniss`: **5 resultados** na seção Biblioteca (Trilogia, A Cantiga dos Pássaros e das Serpentes, Amanhecer na Colheita em EPUB e nos dois PDFs), formato e disco certos, palavra destacada nos trechos.
+- Abrir a Trilogia (1,86 milhão de caracteres): o texto inteiro aparece no leitor, com rolagem, sem travar.
+
+### Melhorias anotadas a partir do uso real
+
+1. **Duplicatas:** o mesmo livro aparece 3 vezes (EPUB + 2 PDFs iguais). Agrupar resultados do mesmo título/texto ou avisar duplicatas na indexação.
+2. **Leitor abre no início:** deveria rolar até o primeiro trecho encontrado e destacar a palavra.
+3. **PDF lento** (~20–50 s por livro com `pypdf`): avaliar `pypdfium2`.
+4. **Caminho relativo** ao registrar volume: corrigido no commit `6a7a9c9` (entra no próximo instalador).
