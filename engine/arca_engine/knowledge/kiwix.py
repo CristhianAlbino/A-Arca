@@ -280,6 +280,31 @@ class ZimLibrary:
             "html": clean_article_html(raw, entry.path, archive),
         }
 
+    def article_text(self, zim_id: str, path: str, max_chars: int = 900) -> str:
+        """Plain text from the start of an article (its summary), for an AI answer."""
+        _info, archive = self._archive(zim_id)
+        try:
+            entry = archive.get_entry_by_path(path)
+            while entry.is_redirect:
+                entry = entry.get_redirect_entry()
+            item = entry.get_item()
+        except (KeyError, RuntimeError):
+            return ""
+        if not item.mimetype.startswith("text/html"):
+            return ""
+        raw = bytes(item.content)[:200_000].decode("utf-8", "replace")
+        body_match = _BODY.search(raw)
+        text = _REMOVE_BLOCKS.sub(" ", body_match.group(1) if body_match else raw)
+        text = re.sub(r"<(br|/p|/h[1-6]|/li|/tr|/div)\b[^>]*>", "\n", text, flags=re.IGNORECASE)
+        text = html.unescape(_TAGS.sub(" ", text))
+        text = re.sub(r"[ \t]+", " ", text)
+        text = re.sub(r"\s*\n\s*", "\n", text).strip()
+        text = re.sub(r" ([.,;:!?)])", r"\1", text)
+        if len(text) > max_chars:
+            cut = text.rfind(" ", 0, max_chars)
+            text = text[: cut if cut > max_chars // 2 else max_chars] + "…"
+        return text
+
 
 # --- HTML cleaning ---------------------------------------------------------------
 _REMOVE_BLOCKS = re.compile(

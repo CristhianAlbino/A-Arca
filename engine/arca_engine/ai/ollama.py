@@ -127,6 +127,8 @@ class OllamaProvider:
             # Reasoning models (e.g. qwen3.5) otherwise "think" for 1,500+ hidden tokens
             # before the first visible word; on the RTX 5060 that is a minute of "Pensando…".
             "think": False,
+            # Room for the question, a few passages from the collection and recent history.
+            "options": {"num_ctx": 8192},
         }
         try:
             yield from self._chat_stream(body)

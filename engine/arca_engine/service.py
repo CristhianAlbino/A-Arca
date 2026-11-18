@@ -16,6 +16,7 @@ from .activity import log_activity, recent_activity
 from .ai.base import ProviderError, ProviderUnavailable
 from .ai.chat import ChatStore, chat_stream
 from .context import AppContext
+from .knowledge import retrieve
 from .storage.db import schema_version
 from .system import info
 
@@ -227,10 +228,12 @@ def chat(
     model: str | None = None,
     conversation_id: str | None = None,
     memory_probe=memory_free,
+    use_sources: bool = True,
 ) -> Iterator[dict[str, Any]]:
     model = model or ctx.settings.default_model
     if not model:
         return iter([{"type": "error", "message": "Escolha um modelo para conversar."}])
+    sources = retrieve.gather(ctx, text) if use_sources and text.strip() else []
     return chat_stream(
         ChatStore(ctx.db),
         ctx.ai_provider(),
@@ -239,6 +242,8 @@ def chat(
         conversation_id=conversation_id,
         memory_probe=memory_probe,
         keep_alive_minutes=ctx.settings.model_idle_unload_minutes,
+        sources=[s.to_dict() for s in sources] or None,
+        context=retrieve.context_block(sources) if sources else None,
     )
 
 

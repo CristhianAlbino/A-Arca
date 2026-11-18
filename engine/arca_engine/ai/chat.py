@@ -2,6 +2,7 @@
 
 The stream is a sequence of events (dicts), sent to the UI as NDJSON:
     {"type": "meta",   "conversation_id": "...", "model": "..."}
+    {"type": "sources", "sources": [...]}            optional: passages from the user's collection
     {"type": "notice", "message": "..."}            optional (e.g. slower, partly in RAM)
     {"type": "delta",  "text": "..."}               many
     {"type": "done",   "stats": {...}}
@@ -22,10 +23,12 @@ from .budget import check_fit
 
 SYSTEM_PROMPT = (
     "Você é a ARCA, uma assistente pessoal que roda localmente no computador do usuário, "
-    "sem precisar de internet. Responda em português do Brasil, com clareza e objetividade. "
-    "Seja honesta: se não souber, diga que não sabe. Não invente fatos, números, fontes nem "
-    "procedimentos médicos ou técnicos. Nesta versão você ainda não consulta a biblioteca de "
-    "documentos do usuário; se ele perguntar algo que dependa dela, explique isso."
+    "sem precisar de internet. Responda sempre em português do Brasil (não de Portugal), com "
+    "clareza e objetividade. Seja honesta: se não souber, diga que não sabe. Não invente fatos, "
+    "números, fontes nem procedimentos médicos ou técnicos. Quando a mensagem trouxer trechos do "
+    "acervo numerados, baseie a resposta neles e cite cada informação com o número, como [1] ou "
+    "[2]; não cite números que não existem. Se os trechos não tratarem da pergunta, diga que não "
+    "encontrou isso no acervo antes de responder com o que sabe."
 )
 MAX_HISTORY_MESSAGES = 20
 TITLE_LENGTH = 60
@@ -121,7 +124,11 @@ def chat_stream(
     conversation_id: str | None,
     memory_probe: MemoryProbe,
     keep_alive_minutes: int = 5,
+    sources: list[dict[str, Any]] | None = None,
+    context: str | None = None,
 ) -> Iterator[dict[str, Any]]:
+    """`sources` (shown to the user) and `context` (sent to the model with the question)
+    come from knowledge.retrieve; only the user's own words are stored as the question."""
     text = text.strip()
     if not text:
         yield {"type": "error", "message": "Escreva uma mensagem."}
@@ -157,8 +164,12 @@ def chat_stream(
     conv_id = conversation_id or store.create(provider.name, model, text)
     store.add_message(conv_id, "user", text)
     yield {"type": "meta", "conversation_id": conv_id, "model": model}
+    if sources:
+        yield {"type": "sources", "sources": sources}
 
     messages = [ChatMessage("system", SYSTEM_PROMPT), *store.history(conv_id)]
+    if context and messages[-1].role == "user":
+        messages[-1] = ChatMessage("user", f"{messages[-1].content}\n\n{context}")
     parts: list[str] = []
     stats: dict[str, Any] = {}
     status = "interrupted"  # if the client goes away mid-answer
@@ -169,12 +180,14 @@ def chat_stream(
                 parts.append(chunk.text)
                 yield {"type": "delta", "text": chunk.text}
             if chunk.done:
-                stats = chunk.stats
+                stats = dict(chunk.stats)
         status = "ok"
     except (ProviderUnavailable, ProviderError) as exc:
         status, error = "error", str(exc)
     finally:
         answer = "".join(parts)
+        if sources:
+            stats = {**stats, "sources": sources}
         if answer or status != "ok":
             store.add_message(
                 conv_id, "assistant", answer or (error or ""), model=model, status=status, stats=stats or None
@@ -182,4 +195,4 @@ def chat_stream(
     if error:
         yield {"type": "error", "message": error}
     else:
-        yield {"type": "done", "stats": stats}
+        yield {"type": "done", "stats": {k: v for k, v in stats.items() if k != "sources"}}

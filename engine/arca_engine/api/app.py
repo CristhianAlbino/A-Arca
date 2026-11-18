@@ -36,6 +36,7 @@ class ChatRequest(BaseModel):
     text: str
     model: str | None = None
     conversation_id: str | None = None
+    use_sources: bool = True
 
 
 class PullRequest(BaseModel):
@@ -174,7 +175,7 @@ def create_app(ctx: AppContext) -> FastAPI:
 
     @app.post("/ai/chat")
     def chat(body: ChatRequest) -> StreamingResponse:
-        events = service.chat(ctx, body.text, body.model, body.conversation_id)
+        events = service.chat(ctx, body.text, body.model, body.conversation_id, use_sources=body.use_sources)
         lines = (json.dumps(e, ensure_ascii=False) + "\n" for e in events)
         return StreamingResponse(lines, media_type="application/x-ndjson")
 
