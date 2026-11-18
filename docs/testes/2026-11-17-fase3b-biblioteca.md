@@ -49,3 +49,23 @@ Conferido pelo DOM.
 - O instalador abriu a ARCA ao concluir; motor escutando em `127.0.0.1:57807`. A tela ficou ~40 s em "Conectando ao motor…" com ~700 MB de RAM livre (de 8 GB) e depois carregou normalmente.
 - Conhecimento: seções Enciclopédias e Biblioteca presentes; "Indexar" sem volume registrado → "0 documentos · Última indexação: 0 novos, 0 atualizados, 0 removidos", sem erro.
 - Observação: a partida do motor empacotado fica lenta com pouca RAM livre; reavaliar depois do upgrade para 24 GB (se continuar lento, mostrar na tela que o motor está iniciando há X segundos).
+
+## Adendo — EPUB e livros reais
+
+**Motor:** `101 passed, 1 warning in 39.47s`; `ruff`: `All checks passed!`. Novos: EPUB lido na ordem do `content.opf` (capítulos guardados fora de ordem no zip), título do livro, sem CSS/tags; EPUB quebrado conta como erro sem parar a indexação; volume com caminho relativo é recusado.
+
+**Livros reais de `G:\Meu Drive\ARCA\03_LIVROS` (só leitura, `extract()` direto, sem indexar):**
+
+| Arquivo | Formato | Texto | Tempo |
+| --- | --- | --- | --- |
+| Amanhecer na Colheita - Suzanne Collins.pdf | pdf | 657.803 caracteres | 24,0 s |
+| Amanhecer na Colheita .epub | epub | 672.941 caracteres | 1,8 s |
+| Amanhecer na Colheita PDF.pdf | pdf | 657.803 caracteres (mesmo texto do outro PDF: duplicado) | 18,9 s |
+| Jogos_Vorazes_#0_5_….pdf | pdf | 890.039 caracteres | 26,3 s |
+| Trilogia Jogos Vorazes - Suzanne Collins.pdf | pdf | 1.857.859 caracteres | 53,5 s |
+
+Todos com título correto. **Ponto de atenção:** `pypdf` leva ~20–50 s por livro neste notebook (8 GB de RAM, quase toda em uso). Um acervo de milhares de PDFs levaria horas na primeira indexação. Opção a avaliar: `pypdfium2` (licença Apache/BSD, bem mais rápido); `PyMuPDF` foi descartado pela licença AGPL.
+
+**Instalador** do commit `652a41f`: `--check-deps` ok (inclui `pypdf`), 25.04 MiB. Ainda não instalado.
+
+**Registro da pasta do Drive pelo app instalado (automação de tela):** o primeiro texto digitado foi colado da área de transferência ("ollama") e revelou o defeito do caminho relativo (corrigido no commit `6a7a9c9`, ainda fora do instalador). Na segunda tentativa as teclas não chegaram à ARCA (provavelmente foram para outra janela em primeiro plano); a automação foi interrompida e o registro ficou para o usuário fazer.
