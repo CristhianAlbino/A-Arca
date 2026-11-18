@@ -1,6 +1,6 @@
 # Fase 3 — ARCA KNOWLEDGE
 
-**Status:** etapa 3A (enciclopédias ZIM) feita e testada com um ZIM gerado nos testes, no branch `feat/fase-3-kiwix` (sobre `feat/fase-2-modelos`); 3B e 3C pendentes · **Release alvo:** v0.3.0
+**Status:** 3A (enciclopédias ZIM) feita no branch `feat/fase-3-kiwix`; 3B (biblioteca própria, busca textual) feita no branch `feat/fase-3-biblioteca` (sobre `feat/fase-3-kiwix`); 3C (semântica/RAG) espera a IA local · **Release alvo:** v0.3.0
 
 > Adiantada a pedido do usuário (2026-11-17) enquanto a IA local espera o Ollama e o upgrade de RAM. A parte que depende de IA (3C) continua esperando a Fase 2.
 
@@ -24,7 +24,13 @@ Ler e buscar enciclopédias offline (Wikipédia PT/EN, WikiMed, Wikibooks…) e 
 Decisão de implementação: em vez de rodar o `kiwix-serve` (ADR 0005), a primeira versão lê os ZIMs direto com `python-libzim`, que já traz busca e leitura; evita mais um processo e uma porta. O `kiwix-serve` continua opção se for preciso navegar ZIMs com JavaScript (ex.: PhET).
 
 ### 3B — Biblioteca própria (busca textual)
-- [ ] Indexar documentos de texto/PDF/EPUB com FTS5 (`unicode61`, sem acentos) — depende da importação da Fase 6; avaliar fazer só a parte de texto aqui
+- [x] Indexar `.txt`, `.md`, `.html` e `.pdf` (texto, via `pypdf`) dos volumes ARCA com FTS5 (`unicode61 remove_diacritics 2`), migração 4 — branch `feat/fase-3-biblioteca`
+- [x] Reindexação incremental (tamanho + data de modificação); arquivos apagados saem do índice; disco desconectado mantém os documentos (marcados como indisponíveis)
+- [x] Indexação em segundo plano com progresso; conexão própria ao SQLite
+- [x] Busca sem acentos, todas as palavras, prefixo na última; trechos com destaque; título pesa mais (bm25)
+- [x] Tela Conhecimento: seção Biblioteca (Indexar, progresso, contagem), resultados separados de Biblioteca e Enciclopédias, leitor de documento
+- [ ] EPUB, DOCX e OCR de PDFs escaneados — ficam para a Fase 6 (FILES), que traz importação e catálogo de verdade
+- [ ] Teste com o acervo real do Drive (desempenho com milhares de PDFs)
 
 ### 3C — Busca semântica e RAG (depende da IA local)
 - [ ] Embeddings pelo Ollama, `sqlite-vec` atrás de `VectorStore`
